@@ -1,12 +1,24 @@
-import React from "react";
+import AboutHero from "../components/about/AboutHero";
+import InfoCardGrid from "../components/about/InfoCardGrid";
+import { aboutCards } from "../data/aboutData";
+
+import ProgressStatsSection from "../components/homeComponents/ProgressStatsSection";
+import StatsHighlightSection from "../components/homeComponents/StatsHighlightSection";
+import PlacementPartnersSection from "../components/homeComponents/placement-partners";
+import StudentZoneCTA from "../components/homeComponents/StudentZoneCTA";
 
 const About = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-100">
-      <h1 className="text-4xl font-bold text-red-600">
-        About Page - Tailwind Working ✅
-      </h1>
-    </div>
+    <main className="bg-white">
+      <AboutHero />
+      <InfoCardGrid cards={aboutCards} />
+
+      {/* Shared Sections */}
+      <ProgressStatsSection />
+      <StatsHighlightSection />
+      <PlacementPartnersSection />
+      <StudentZoneCTA />
+    </main>
   );
 };
 

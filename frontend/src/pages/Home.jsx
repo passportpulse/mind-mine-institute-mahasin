@@ -2,20 +2,24 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 import Hero from "../components/homeComponents/Hero";
-import Programs from "../components/homeComponents/Programs";
-import WhyChooseUs from "../components/homeComponents/WhyChooseUs";
-import Performance from "../components/homeComponents/Performance";
-import StatsStrip from "../components/homeComponents/StatsStrip";
+import ProgramsSection from "../components/homeComponents/ProgramsSection";
+
 import StudentZoneCTA from "../components/homeComponents/StudentZoneCTA";
+import BenefitsSection from "../components/homeComponents/BenefitsSection";
+import ProgressStatsSection from "../components/homeComponents/ProgressStatsSection";
+import StatsHighlightSection from "../components/homeComponents/StatsHighlightSection";
+import PlacementPartnersSection from "../components/homeComponents/placement-partners";
 
 const Home = () => {
   return (
     <>
       <Hero />
-      <Programs />
-      <WhyChooseUs />
-      <Performance />
-      <StatsStrip />
+      <ProgramsSection />
+      <BenefitsSection />
+      <ProgressStatsSection />
+      <StatsHighlightSection />
+      <PlacementPartnersSection />
+
       <StudentZoneCTA />
     </>
   );
