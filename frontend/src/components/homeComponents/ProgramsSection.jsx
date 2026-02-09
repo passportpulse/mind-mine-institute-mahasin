@@ -62,7 +62,7 @@ const ProgramsSection = () => {
 
                 {/* CTA pinned to bottom */}
                 <NavLink
-                  to={program.link}
+                  to="/contact"
                   className="inline-flex items-center gap-2 pt-6 mt-auto text-sm font-medium text-indigo-600 hover:text-indigo-700"
                 >
                   Contact Us
