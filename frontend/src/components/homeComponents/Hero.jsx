@@ -5,6 +5,8 @@ import {
   CheckCircle2,
   Users,
 } from "lucide-react";
+import { NavLink } from "react-router-dom";
+
 import bannerImg from "../../assets/banner.png";
 import starImg from "../../assets/star.svg";
 
@@ -12,12 +14,12 @@ const Hero = () => {
   return (
     <section className="relative overflow-hidden bg-white">
       {/* Dynamic Background Elements */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10">
+      <div className="absolute top-0 w-full h-full -translate-x-1/2 left-1/2 -z-10">
         <div className="absolute top-[-10%] left-[-10%] h-[500px] w-[500px] rounded-full bg-indigo-50/50 blur-[120px] animate-pulse" />
         <div className="absolute bottom-[10%] right-[-5%] h-[400px] w-[400px] rounded-full bg-emerald-50/50 blur-[100px]" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-6 py-20 lg:py-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="relative grid items-center grid-cols-1 gap-12 px-6 py-20 mx-auto max-w-7xl lg:py-10 lg:grid-cols-2">
         {/* LEFT CONTENT */}
         <div className="z-10">
           {/* Animated Badge */}
@@ -30,11 +32,11 @@ const Hero = () => {
             Forging Leaders <br />
             <span className="relative">
               through{" "}
-              <span className="relative z-10 bg-gradient-to-r from-indigo-600 to-emerald-500 bg-clip-text text-transparent">
+              <span className="relative z-10 text-transparent bg-gradient-to-r from-indigo-600 to-emerald-500 bg-clip-text">
                 Skill Education
               </span>
               <svg
-                className="absolute -bottom-2 left-0 w-full h-3 text-indigo-100 -z-10"
+                className="absolute left-0 w-full h-3 text-indigo-100 -bottom-2 -z-10"
                 viewBox="0 0 100 10"
                 preserveAspectRatio="none"
               >
@@ -48,13 +50,13 @@ const Hero = () => {
             </span>
           </h1>
 
-          <p className="mt-8 max-w-lg text-lg text-gray-600 leading-relaxed italic border-l-4 border-indigo-500 pl-4">
+          <p className="max-w-lg pl-4 mt-8 text-lg italic leading-relaxed text-gray-600 border-l-4 border-indigo-500">
             "Bridging academic excellence with real-world industry demands
             through outcome-driven, practical learning."
           </p>
 
           {/* Icon-based Trust Points */}
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 mt-8 sm:grid-cols-2">
             {[
               "UGC Approved Degree",
               "Industry-Aligned Curriculum",
@@ -69,16 +71,19 @@ const Hero = () => {
           </div>
 
           {/* Buttons */}
-          <div className="mt-10 flex flex-wrap gap-4">
-            <button className="group relative flex items-center gap-2 overflow-hidden rounded-2xl bg-indigo-600 px-8 py-4 text-white transition-all hover:bg-indigo-700 hover:ring-4 hover:ring-indigo-100">
+          <div className="flex flex-wrap gap-4 mt-10">
+            <NavLink
+              to="/student-zone/online-application"
+              className="relative flex items-center gap-2 px-8 py-4 overflow-hidden text-white transition-all bg-indigo-600 group rounded-2xl hover:bg-indigo-700 hover:ring-4 hover:ring-indigo-100"
+            >
               <span className="relative z-10 font-bold">Apply Now</span>
               <ArrowRight
                 size={20}
                 className="relative z-10 transition-transform group-hover:translate-x-1"
               />
-            </button>
+            </NavLink>
 
-            <button className="flex items-center gap-2 rounded-2xl border-2 border-gray-200 px-8 py-4 font-bold text-gray-700 transition-all hover:border-indigo-600 hover:text-indigo-600">
+            <button className="flex items-center gap-2 px-8 py-4 font-bold text-gray-700 transition-all border-2 border-gray-200 rounded-2xl hover:border-indigo-600 hover:text-indigo-600">
               Explore Campus
             </button>
           </div>
@@ -98,11 +103,11 @@ const Hero = () => {
 
           {/* Floating Card 1: Placement */}
           <div className="absolute -bottom-6 -left-8 z-30 rounded-3xl bg-white/90 backdrop-blur-xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-white flex items-center gap-4 animate-float">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200">
+            <div className="flex items-center justify-center w-12 h-12 text-white bg-indigo-600 shadow-lg rounded-2xl shadow-indigo-200">
               <GraduationCap size={24} />
             </div>
             <div>
-              <p className="text-xl font-black text-gray-900 leading-none">
+              <p className="text-xl font-black leading-none text-gray-900">
                 100%
               </p>
               <p className="text-[12px] font-bold text-gray-500 uppercase tracking-tight">
@@ -112,12 +117,12 @@ const Hero = () => {
           </div>
 
           {/* Floating Card 2: Student Community */}
-          <div className="absolute top-10 -right-4 z-30 rounded-2xl bg-white/90 backdrop-blur-xl p-4 shadow-xl border border-white flex items-center gap-3">
+          <div className="absolute z-30 flex items-center gap-3 p-4 border border-white shadow-xl top-10 -right-4 rounded-2xl bg-white/90 backdrop-blur-xl">
             <div className="flex -space-x-3">
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-8 w-8 rounded-full border-2 border-white bg-gray-200 overflow-hidden"
+                  className="w-8 h-8 overflow-hidden bg-gray-200 border-2 border-white rounded-full"
                 >
                   <img src={`https://i.pravatar.cc/150?u=${i}`} alt="user" />
                 </div>
