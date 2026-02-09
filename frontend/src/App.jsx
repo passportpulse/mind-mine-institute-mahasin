@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import ScrollToTop from "./components/ScrollToTop";
 import Faq from "./pages/Faq";
 
 // Components
@@ -22,6 +23,9 @@ const App = () => {
   return (
     <>
       <Navbar />
+
+      {/* 🔑 Global scroll handler */}
+      <ScrollToTop />
 
       <Routes>
         {/* Core Pages */}
