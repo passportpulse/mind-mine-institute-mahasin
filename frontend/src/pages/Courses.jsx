@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, NavLink } from "react-router-dom";
 import coursesData from "../data/coursesData";
 
 const Courses = () => {
@@ -34,13 +34,13 @@ const Courses = () => {
 
             {/* SINGLE APPLY CTA */}
             <div className="mt-8">
-              <a
-                href="/contact"
+              <NavLink
+                to="/student-zone/online-application"
                 className="inline-flex items-center gap-3 px-8 py-4 text-base font-bold text-white transition-all duration-300 bg-indigo-600 rounded-full shadow-lg hover:bg-indigo-700 hover:gap-4"
               >
                 Apply Now
                 <span className="text-lg">→</span>
-              </a>
+              </NavLink>
             </div>
           </div>
 

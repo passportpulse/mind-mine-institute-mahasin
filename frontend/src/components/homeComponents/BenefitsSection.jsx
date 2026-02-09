@@ -58,7 +58,7 @@ const BenefitsSection = () => {
 
               {/* CTA pinned to bottom */}
               <NavLink
-                to={item.link}
+                to="/student-zone/enquiry"
                 className="inline-flex items-center justify-center gap-2 pt-10 mt-auto text-sm font-medium text-indigo-600 hover:text-indigo-700"
               >
                 Learn More
