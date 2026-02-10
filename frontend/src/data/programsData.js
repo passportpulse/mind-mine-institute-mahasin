@@ -10,7 +10,7 @@ export const programsData = [
     description:
       "Career-oriented programs in banking, finance, digital marketing, web development, and e-commerce.",
     image: managementImg,
-    link: "/courses/management-it",
+    link: "/courses/category/management-it",
     cta: "Explore Programs",
   },
   {
@@ -19,7 +19,7 @@ export const programsData = [
     description:
       "Creative and professional design programs including fashion, interior, jewellery, and textile design.",
     image: designImg,
-    link: "/courses/design-technology",
+    link: "/courses/category/design-technology",
     cta: "View Courses",
   },
   {
@@ -28,7 +28,7 @@ export const programsData = [
     description:
       "Job-focused healthcare training in nursing, lab technology, physiotherapy, ICU, and optometry.",
     image: healthcareImg,
-    link: "/courses/healthcare",
+    link: "/courses/category/healthcare",
     cta: "Know More",
   },
   {
@@ -37,7 +37,7 @@ export const programsData = [
     description:
       "Professional culinary, food production, nutrition, and food service management programs.",
     image: foodImg,
-    link: "/courses/food-culinary-nutrition",
+    link: "/courses/category/food-culinary-nutrition",
     cta: "Explore Courses",
   },
 ];
