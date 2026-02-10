@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
-import bannerImg from "../../assets/banner3.jpg";
+import bannerImg from "../../assets/banner3.png";
 import starImg from "../../assets/star.svg";
 
 const Hero = () => {
@@ -99,7 +99,7 @@ const Hero = () => {
             <img
               src={bannerImg}
               alt="Successful Student"
-              className="relative w-full max-w-[500px] drop-shadow-[0_20px_50px_rgba(0,0,0,0.1)]"
+              className="relative w-full max-w-[450px] drop-shadow-[0_20px_50px_rgba(0,0,0,0.1)]"
             />
           </div>
 
