@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
-import bannerImg from "../../assets/banner.png";
+import bannerImg from "../../assets/banner.webp";
 import starImg from "../../assets/star.svg";
 
 const Hero = () => {
@@ -29,11 +29,13 @@ const Hero = () => {
           </div>
 
           <h1 className="mt-8 text-5xl lg:text-7xl font-black tracking-tight text-gray-900 leading-[1.1]">
-            Forging Leaders <br />
+            Shaping Futures, Creating Success
+
+<br />
             <span className="relative">
-              through{" "}
+              {" "}
               <span className="relative z-10 text-transparent bg-gradient-to-r from-indigo-600 to-emerald-500 bg-clip-text">
-                Skill Education
+                Learn Today, Lead Tomorrow
               </span>
               <svg
                 className="absolute left-0 w-full h-3 text-indigo-100 -bottom-2 -z-10"
@@ -58,7 +60,7 @@ const Hero = () => {
           {/* Icon-based Trust Points */}
           <div className="grid grid-cols-1 gap-4 mt-8 sm:grid-cols-2">
             {[
-              "UGC Approved Degree",
+              "Certificated & Diploma Programs",
               "Industry-Aligned Curriculum",
               "100% Practical Exposure",
               "Expert Faculty",

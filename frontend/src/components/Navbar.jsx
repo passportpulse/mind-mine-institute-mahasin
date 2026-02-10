@@ -38,7 +38,7 @@ const studentZoneMenu = [
 
 const courseData = [
   {
-    category: "Management & IT",
+    category: "Management & IT (Certificate & Diploma)",
     icon: <LayoutGrid size={18} />,
     items: [
       "Banking & Finance",
@@ -48,7 +48,7 @@ const courseData = [
     ],
   },
   {
-    category: "Design Technology",
+    category: "Design Technology (Certificate & Diploma)",
     icon: <Palette size={18} />,
     items: [
       "Fashion Design",
@@ -58,7 +58,7 @@ const courseData = [
     ],
   },
   {
-    category: "Healthcare",
+    category: "Healthcare (Certificate & Diploma)",
     icon: <HeartPulse size={18} />,
     items: [
       "General Nursing",
@@ -71,7 +71,7 @@ const courseData = [
     ],
   },
   {
-    category: "Food, Culinary & Nutrition",
+    category: "Food, Culinary & Nutrition (Certificate & Diploma)",
     icon: <Utensils size={18} />,
     items: [
       "Food & Nutrition",
@@ -166,7 +166,7 @@ const Navbar = () => {
               <div className="absolute left-0 flex pt-1 mt-2 top-full">
                 <div className="flex">
                   {/* LEFT PANEL */}
-                  <div className="w-[280px] bg-white p-3 rounded-l-2xl border shadow-lg">
+                  <div className="w-[480px] bg-white p-3 rounded-l-2xl border shadow-lg">
                     {courseData.map((cat, index) => (
                       <button
                         key={cat.category}

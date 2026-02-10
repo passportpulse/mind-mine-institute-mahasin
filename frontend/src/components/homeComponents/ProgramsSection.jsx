@@ -8,11 +8,11 @@ const ProgramsSection = () => {
         {/* ================= SECTION HEADER ================= */}
         <div className="max-w-2xl mx-auto mb-20 text-center">
           <p className="text-xl font-semibold tracking-widest text-indigo-600 uppercase">
-            Academic Programmes
+            Academic 
           </p>
 
           <h2 className="mt-4 text-4xl font-semibold tracking-tight text-gray-900">
-            Discover <span className="text-indigo-600">UGC-approved</span>{" "}
+            Discover <span className="text-indigo-600">Certificate & Diploma</span>{" "}
             programs
           </h2>
 
@@ -65,7 +65,7 @@ const ProgramsSection = () => {
                   to="/contact"
                   className="inline-flex items-center gap-2 pt-6 mt-auto text-sm font-medium text-indigo-600 hover:text-indigo-700"
                 >
-                  Contact Us
+                  View All Programs
                   <span aria-hidden>→</span>
                 </NavLink>
               </div>

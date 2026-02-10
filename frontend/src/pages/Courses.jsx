@@ -28,9 +28,10 @@ const Courses = () => {
               {course.title}
             </h1>
 
-            <p className="mt-6 leading-relaxed text-gray-600">
-              {course.description}
-            </p>
+            <div 
+              className="mt-6 leading-relaxed text-gray-600 [&_p]:mb-4"
+              dangerouslySetInnerHTML={{ __html: course.description }}
+            />
 
             {/* SINGLE APPLY CTA */}
             <div className="mt-8">
