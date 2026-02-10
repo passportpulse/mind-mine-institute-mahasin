@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
-import bannerImg from "../../assets/banner.webp";
+import bannerImg from "../../assets/banner3.jpg";
 import starImg from "../../assets/star.svg";
 
 const Hero = () => {
@@ -28,10 +28,10 @@ const Hero = () => {
             <span>Admissions Open 2025–26</span>
           </div>
 
-          <h1 className="mt-8 text-5xl lg:text-7xl font-black tracking-tight text-gray-900 leading-[1.1]">
+          <h1 className="mt-8 text-5xl  font-black tracking-tight text-gray-700 leading-[1.1]">
             Shaping Futures, Creating Success
 
-<br />
+        
             <span className="relative">
               {" "}
               <span className="relative z-10 text-transparent bg-gradient-to-r from-indigo-600 to-emerald-500 bg-clip-text">
