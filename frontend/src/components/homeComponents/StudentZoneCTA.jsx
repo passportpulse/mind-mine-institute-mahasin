@@ -1,6 +1,6 @@
 import { ArrowRight, ShieldCheck, Lock } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import ctabg from "../../assets/ctabg.jpg";
+import ctabg from "../../assets/mindmine/mindmine1.jpeg";
 
 const StudentZoneCTA = () => {
   return (

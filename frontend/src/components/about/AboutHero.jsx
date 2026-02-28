@@ -1,4 +1,4 @@
-import mainBanner from "../../../src/assets/main-banner.jpg";
+import mainBanner from "../../../src/assets/mindmine/mindmine14.jpeg";
 
 const AboutHero = () => {
   return (

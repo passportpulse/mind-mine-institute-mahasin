@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Plus, Minus, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import mainBanner from "../assets/main-banner.jpg";
+import mainBanner from "../assets/mindmine/mindmine14.jpeg";
 
 const faqData = [
   {

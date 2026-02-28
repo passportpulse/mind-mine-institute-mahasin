@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { progressStatsData } from "../../data/progressStatsData";
-import bgImage from "../../assets/one.jpg";
-import studentImage from "../../assets/two.jpg";
+import bgImage from "../../assets/mindmine/mindmine3.jpeg";
+import studentImage from "../../assets/mindmine/mindmine4.jpeg";
 import { FiArrowRight } from "react-icons/fi";
 
 const ProgressStatsSection = () => {

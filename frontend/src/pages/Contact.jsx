@@ -1,4 +1,4 @@
-import mainBanner from "../assets/main-banner.jpg";
+import mainBanner from "../assets/mindmine/mindmine14.jpeg";
 import { MapPin, Mail, Phone } from "lucide-react";
 
 const Contact = () => {

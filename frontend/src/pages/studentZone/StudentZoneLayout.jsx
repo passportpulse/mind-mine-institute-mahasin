@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
-import mainBanner from "../../assets/main-banner.jpg";
+import mainBanner from "../../assets/mindmine/mindmine14.jpeg";
 
 const pageTitleMap = {
   "/student-zone/enquiry": "Enquiry",
