@@ -88,7 +88,7 @@ const Footer = () => {
             <div className="space-y-5">
               <ContactItem
                 Icon={MapPin}
-                text="52A, Indian Mirror St, Kolkata, WB 700014"
+                text="52A, Indian Mirror St, Kolkata, WB 700013"
               />
               <ContactItem Icon={Phone} text="+91 75950 77657" />
               <ContactItem Icon={Mail} text="admissions@mindmineskill.com" />

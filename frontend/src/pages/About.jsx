@@ -1,4 +1,5 @@
 import AboutHero from "../components/about/AboutHero";
+import AboutContent from "../components/about/AboutContent";
 import InfoCardGrid from "../components/about/InfoCardGrid";
 import { aboutCards } from "../data/aboutData";
 
@@ -11,6 +12,7 @@ const About = () => {
   return (
     <main className="bg-white">
       <AboutHero />
+      <AboutContent />
       <InfoCardGrid cards={aboutCards} />
 
       {/* Shared Sections */}

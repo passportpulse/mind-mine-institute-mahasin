@@ -106,7 +106,7 @@ const Contact = () => {
                   </p>
 
                   <p className="mt-1 text-sm text-gray-600">
-                    <b>Kolkata City:</b> +91 7605057139 / +91 7595077657
+                    <b>Kolkata City:</b> +91 7605057139 / +91 7605057139
                   </p>
 
                   <p className="mt-1 text-sm text-gray-600">
