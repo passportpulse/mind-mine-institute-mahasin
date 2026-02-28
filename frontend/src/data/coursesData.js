@@ -1,3 +1,14 @@
+import mindmine1 from "../assets/mindmine/mindmine1.jpeg";
+import mindmine2 from "../assets/mindmine/mindmine2.jpeg";
+import mindmine3 from "../assets/mindmine/mindmine3.jpeg";
+import mindmine4 from "../assets/mindmine/mindmine4.jpeg";
+import mindmine5 from "../assets/mindmine/mindmine5.jpeg";
+import mindmine6 from "../assets/mindmine/mindmine6.jpeg";
+import mindmine7 from "../assets/mindmine/mindmine7.jpeg";
+import mindmine8 from "../assets/mindmine/mindmine8.jpeg";
+import mindmine9 from "../assets/mindmine/mindmine9.jpeg";
+import mindmine10 from "../assets/mindmine/mindmine10.jpeg";
+
 const coursesData = {
   /* ================= MANAGEMENT & IT ================= */
 
@@ -8,6 +19,7 @@ const coursesData = {
     eligibility: "Any Graduate / Final Year Students",
     mode: "Offline + Online Hybrid",
     fees: "₹25,000 - ₹35,000",
+    image: mindmine1,
     description: `<p>This comprehensive program builds a strong foundation in banking operations, financial management, accounting principles, and customer relationship management. Students gain hands-on experience with banking software, learn regulatory compliance, and develop essential skills for careers in banks, NBFCs, and financial institutions.</p>
 
 <p>The curriculum covers both traditional banking and modern fintech concepts, preparing students for the evolving financial sector. You'll master core banking operations, practical accounting with Tally/ERP, customer handling procedures, digital banking platforms, loan processing, credit analysis, and risk management fundamentals.</p>
@@ -59,6 +71,7 @@ const coursesData = {
     eligibility: "Any Graduate / Diploma Holders",
     mode: "Offline + Online Hybrid",
     fees: "₹30,000 - ₹45,000",
+    image: mindmine2,
     description: `<p>Master the art of digital marketing with cutting-edge AI tools and data-driven strategies. This program covers SEO, SEM, social media marketing, content creation, and advanced AI-powered marketing automation. Students work on live projects, learn to analyze marketing data, and gain expertise in using AI tools for campaign optimization.</p>
 
 <p>You'll develop skills in search engine optimization, search engine marketing, social media management, content marketing, email automation, web analytics, and mobile marketing. The course includes Google Ads and Facebook Ads certification preparation, AI tools training, and personal branding development to help you stand out in the digital marketplace.</p>
@@ -111,6 +124,7 @@ const coursesData = {
     eligibility: "12th Pass / Any Graduate",
     mode: "Offline + Online Hybrid",
     fees: "₹35,000 - ₹50,000",
+    image: mindmine3,
     description: `<p>Comprehensive hands-on training in modern web development covering front-end and back-end technologies. Students learn to build responsive, interactive, and SEO-friendly websites using industry-standard frameworks and tools. The program includes real-world projects, version control with Git, deployment practices, and preparation for entry-level web development roles.</p>
 
 <p>You'll master HTML5, CSS3, advanced JavaScript, React.js, Node.js, Express.js, MongoDB, RESTful API development, and web performance optimization. The curriculum covers both frontend and backend development, database design, version control with GitHub, and cloud deployment platforms to give you a complete skill set.</p>
@@ -161,9 +175,10 @@ const coursesData = {
     title: "Retail Management & E-Commerce",
     category: "Management & IT",
     duration: "6 Months",
-    eligibility: "12th Pass / Any Graduate",
+    eligibility: "12th Pass & Above",
     mode: "Offline + Online Hybrid",
     fees: "₹20,000 - ₹30,000",
+    image: mindmine4,
     description: `<p>Master the dynamics of modern retail operations and e-commerce platforms. This program covers traditional retail management, inventory control, customer service, and online business strategies. Students learn about supply chain management, digital storefronts, payment gateways, and customer experience optimization through case studies and practical projects.</p>
 
 <p>You'll gain expertise in retail operations, store management, visual merchandising, inventory control, e-commerce fundamentals, online marketplace management, digital marketing for retail, and supply chain logistics. The course includes training on Point of Sale systems, retail analytics, and business communication skills essential for success.</p>
@@ -219,6 +234,7 @@ const coursesData = {
     eligibility: "10th / 12th Pass",
     mode: "Offline + Online Hybrid",
     fees: "₹40,000 - ₹60,000",
+    image: mindmine5,
     description: `<p>Unleash your creativity in the world of fashion with this comprehensive program covering garment design, pattern making, fashion illustration, and textile knowledge. Students learn traditional and modern design techniques, develop their own design aesthetic, create professional portfolios, and gain exposure to the fashion industry through workshops.</p>
 
 <p>You'll master fashion sketching, digital illustration, garment construction, pattern making, textile science, CAD software, draping, 3D design, fashion merchandising, and business management. The program includes fashion show participation, industry expert workshops, and entrepreneurship guidance for starting your own fashion business.</p>
@@ -268,10 +284,11 @@ const coursesData = {
   "jewellery-design": {
     title: "Jewellery Design",
     category: "Design Technology",
-    duration: "6–12 Months",
+    duration: "12 Months",
     eligibility: "10th Pass & Above",
     mode: "Offline + Online Hybrid",
     fees: "₹35,000 - ₹55,000",
+    image: mindmine6,
     description: `<p>Master the art of jewellery design through traditional techniques and modern digital tools. This program covers manual sketching, CAD software, gemstone knowledge, metallurgy, and market trends. Students gain hands-on experience in workshops, learn about jewellery manufacturing processes, and develop skills to create stunning pieces.</p>
 
 <p>You'll learn manual and digital jewellery design techniques, gemstone identification, CAD software like JewelCAD and Rhino, manufacturing processes, costing strategies, market trends, and jewellery photography. The course includes metallurgy knowledge, practical workshop training, industry exposure visits, and certification support.</p>
@@ -325,6 +342,7 @@ const coursesData = {
     eligibility: "12th Pass",
     mode: "Offline + Online Hybrid",
     fees: "₹45,000 - ₹65,000",
+    image: "/assets/mindmine/mindmine1.jpeg",
     description: `<p>Transform spaces into beautiful, functional environments with this comprehensive interior design program. Learn space planning, furniture design, material selection, lighting concepts, and professional visualization techniques. Students work on real projects, master AutoCAD and 3D modeling software, and develop essential skills.</p>
 
 <p>You'll gain expertise in space planning, layout design, technical drafting, AutoCAD, 3D modeling, materials and finishes, lighting design, color theory, furniture selection, and professional practice. The curriculum covers both residential and commercial design projects, preparing you for diverse client needs and preferences.</p>
@@ -378,6 +396,7 @@ const coursesData = {
     eligibility: "10th / 12th Pass",
     mode: "Offline + Online Hybrid",
     fees: "₹35,000 - ₹50,000",
+    image: "/assets/mindmine/mindmine1.jpeg",
     description: `<p>Explore the creative world of fabric design, textile production, and surface ornamentation. This program covers traditional dyeing techniques, modern printing methods, digital textile design, and production processes. Students develop their design aesthetic, create professional portfolios, and gain industry exposure.</p>
 
 <p>You'll learn textile science, design principles, color theory, traditional dyeing, block printing, screen printing, digital textile design, weaving basics, surface ornamentation, and CAD software. The course includes fashion textiles, home textiles, industry exposure, factory visits, and sustainable textile practices.</p>
@@ -433,6 +452,7 @@ const coursesData = {
     eligibility: "12th Pass (Science preferred)",
     mode: "Offline + Practical Training",
     fees: "₹50,000 - ₹80,000",
+    image: "/assets/mindmine/mindmine1.jpeg",
     description: `<p>Professional nursing program focused on comprehensive patient care, medical procedures, and hospital practices. Students gain theoretical knowledge and extensive clinical training in hospital settings, learning patient assessment, medication administration, wound care, and emergency response.</p>
 
 <p>You'll master fundamentals of nursing, anatomy and physiology, pharmacology, medical-surgical nursing, pediatric nursing, maternal health, mental health nursing, community health, and emergency care. The curriculum includes nursing ethics, communication skills, and extensive clinical practicum.</p>
@@ -539,6 +559,7 @@ const coursesData = {
     eligibility: "12th Pass (Science)",
     mode: "Offline + Practical Training",
     fees: "₹25,000 - ₹40,000",
+    image: "/assets/mindmine/mindmine1.jpeg",
     description: `<p>Comprehensive program covering diagnostic laboratory procedures, sample collection techniques, and laboratory equipment handling. Students learn clinical pathology, microbiology, biochemistry, and quality control methods for crucial roles in medical diagnostics.</p>
 
 <p>You'll master clinical pathology, clinical biochemistry, microbiology, hematology, blood banking, laboratory equipment, quality control, sample processing, and computer applications. The curriculum covers medical ethics, safety protocols, communication skills, and extensive clinical practicum.</p>
@@ -592,6 +613,7 @@ const coursesData = {
     eligibility: "12th Pass (Science)",
     mode: "Offline + Practical Training",
     fees: "₹30,000 - ₹45,000",
+    image: "/assets/mindmine/mindmine1.jpeg",
     description: `<p>Specialized training program for assisting surgical teams in operation theatres. Students learn OT setup, sterilization procedures, surgical assistance, patient safety protocols, and emergency response for critical roles in surgical departments.</p>
 
 <p>You'll gain expertise in OT technology, human anatomy, surgical procedures, OT setup, sterilization methods, surgical instruments, anesthesia support, patient safety, infection control, and emergency procedures. The curriculum includes medical terminology, communication, teamwork, and extensive clinical practicum.</p>
@@ -645,6 +667,7 @@ const coursesData = {
     eligibility: "12th Pass (Science)",
     mode: "Offline + Practical Training",
     fees: "₹25,000 - ₹40,000",
+    image: "/assets/mindmine/mindmine1.jpeg",
     description: `<p>Comprehensive program for assisting physiotherapists in rehabilitation exercises, patient care, and therapy management. Students learn rehabilitation techniques, exercise therapy basics, patient assessment support, and treatment planning for rewarding careers in physiotherapy.</p>
 
 <p>You'll master physiotherapy fundamentals, human anatomy, exercise physiology, rehabilitation techniques, manual therapy, electrotherapy, patient assessment, sports injury management, and neurological rehabilitation. The curriculum covers geriatric and pediatric physiotherapy, communication skills, and extensive clinical internship.</p>
@@ -698,6 +721,7 @@ const coursesData = {
     eligibility: "12th Pass (Science)",
     mode: "Offline + Practical Training",
     fees: "₹30,000 - ₹45,000",
+    image: "/assets/mindmine/mindmine1.jpeg",
     description: `<p>Specialized training for assisting critical care units and handling ICU equipment. Students learn critical patient monitoring, ICU equipment operation, emergency protocols, and life support systems for challenging roles in intensive care units.</p>
 
 <p>You'll gain expertise in critical care fundamentals, human anatomy, patient monitoring, ICU equipment, life support systems, ventilator management, hemodynamic monitoring, emergency procedures, and infection control. The curriculum includes medical terminology, patient communication, and extensive clinical practicum.</p>
@@ -751,6 +775,7 @@ const coursesData = {
     eligibility: "12th Pass (Science)",
     mode: "Offline + Practical Training",
     fees: "₹20,000 - ₹35,000",
+    image: "/assets/mindmine/mindmine1.jpeg",
     description: `<p>Learn eye examination support, vision testing, and optical clinic assistance. Students gain expertise in vision testing techniques, optical instruments, patient handling, and eyewear dispensing for careers in optical clinics and eye care centers.</p>
 
 <p>You'll master optometry fundamentals, eye anatomy, vision testing, optical instruments, refractive error assessment, contact lens fundamentals, eyewear dispensing, patient communication, and optical clinic management. The curriculum covers eye disease recognition, retail optical skills, and clinical internship.</p>
@@ -806,6 +831,7 @@ const coursesData = {
     eligibility: "10th / 12th Pass",
     mode: "Offline + Online Hybrid",
     fees: "₹15,000 - ₹25,000",
+    image: "/assets/mindmine/mindmine1.jpeg",
     description: `<p>Comprehensive program covering nutrition science, diet planning, and healthy lifestyle practices. Students learn about macro and micronutrients, therapeutic diets, weight management, and wellness coaching for careers in nutrition and wellness.</p>
 
 <p>You'll master nutrition science fundamentals, macronutrients and micronutrients, nutritional assessment, diet planning and counseling, therapeutic nutrition, weight management, sports nutrition, and public health nutrition. The curriculum covers food safety, nutrition through life stages, and practical training.</p>
@@ -859,6 +885,7 @@ const coursesData = {
     eligibility: "10th Pass & Above",
     mode: "Offline + Practical Training",
     fees: "₹25,000 - ₹40,000",
+    image: "/assets/mindmine/mindmine1.jpeg",
     description: `<p>Professional culinary training covering advanced food preparation, kitchen management, and international cuisine. Students master cooking techniques, menu planning, food safety, and kitchen operations for careers in the culinary industry.</p>
 
 <p>You'll learn culinary arts fundamentals, basic and advanced cooking techniques, Indian regional cuisine, continental cuisine, bakery and pastry arts, food safety and HACCP, kitchen management, menu planning and costing, and restaurant operations. The curriculum includes food presentation and industrial training.</p>
@@ -912,6 +939,7 @@ const coursesData = {
     eligibility: "Open to All",
     mode: "Offline + Practical Training",
     fees: "₹12,000 - ₹20,000",
+    image: "/assets/mindmine/mindmine1.jpeg",
     description: `<p>Specialized hands-on training in baking, cake decoration, and pastry preparation. Students learn various baking techniques, cake decoration methods, fondant work, and pastry arts for starting home bakeries or cake businesses.</p>
 
 <p>You'll master baking science, basic and advanced baking techniques, various cake types and methods, cake decoration basics and advanced techniques, fondant and sugar art, pastries and desserts, chocolate work, and food photography. The curriculum includes business planning and marketing strategies.</p>
@@ -965,6 +993,7 @@ const coursesData = {
     eligibility: "10th Pass & Above",
     mode: "Offline + Practical Training",
     fees: "₹18,000 - ₹30,000",
+    image: "/assets/mindmine/mindmine1.jpeg",
     description: `<p>Comprehensive training in food service operations, hospitality etiquette, and customer service excellence. Students learn restaurant service techniques, bar operations, event management, and hospitality management for careers in the service industry.</p>
 
 <p>You'll gain expertise in hospitality industry fundamentals, food and beverage service basics, restaurant operations, bar and beverage management, customer service skills, hospitality etiquette, event management, menu knowledge, and POS operations. The curriculum covers safety regulations and communication skills.</p>

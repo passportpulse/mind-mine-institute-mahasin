@@ -46,19 +46,34 @@ const Courses = () => {
           </div>
 
           {/* RIGHT INFO */}
-          <div className="grid grid-cols-2 gap-6">
-            <div className="p-6 bg-white shadow rounded-2xl">
-              <p className="text-sm text-gray-500">Duration</p>
-              <p className="mt-1 text-lg font-bold text-gray-900">
-                {course.duration}
-              </p>
+          <div className="space-y-6">
+            {/* Course Image */}
+            <div className="overflow-hidden rounded-2xl ">
+              <img
+                src={course.image || "/assets/banner.webp"}
+                alt={course.title}
+                className="w-full h-auto object-cover"
+                onError={(e) => {
+                  e.target.src = '/assets/banner.webp';
+                }}
+              />
             </div>
 
-            <div className="p-6 bg-white shadow rounded-2xl">
-              <p className="text-sm text-gray-500">Eligibility</p>
-              <p className="mt-1 text-lg font-bold text-gray-900">
-                {course.eligibility}
-              </p>
+            {/* Info Cards */}
+            <div className="grid grid-cols-2 gap-6">
+              <div className="p-6 bg-white shadow rounded-2xl">
+                <p className="text-sm text-gray-500">Duration</p>
+                <p className="mt-1 text-lg font-bold text-gray-900">
+                  {course.duration}
+                </p>
+              </div>
+
+              <div className="p-6 bg-white shadow rounded-2xl">
+                <p className="text-sm text-gray-500">Eligibility</p>
+                <p className="mt-1 text-lg font-bold text-gray-900">
+                  {course.eligibility}
+                </p>
+              </div>
             </div>
           </div>
         </div>
