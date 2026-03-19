@@ -1,4 +1,119 @@
+import { useState } from "react";
+
 const OnlineApplication = () => {
+  const [formData, setFormData] = useState({
+    campusInfo: { campus: "", campusLocation: "", course: "" },
+    studentDetails: {
+      fullName: "",
+      dob: "",
+      gender: "",
+      caste: "",
+      aadhaar: "",
+      nationality: "Indian",
+      address: "",
+      city: "",
+      state: "West Bengal",
+      pinCode: "",
+      contact: "",
+      email: "",
+    },
+    parentDetails: {
+      fatherName: "",
+      fatherOccupation: "",
+      fatherPhone: "",
+      motherName: "",
+      motherOccupation: "",
+      motherPhone: "",
+    },
+    guardian: { name: "", phone: "" },
+  });
+
+  const [errors, setErrors] = useState({});
+
+  const handleChange = (section, field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value,
+      },
+    }));
+  };
+
+  // ✅ Validation
+  const validate = () => {
+    let newErrors = {};
+
+    if (!formData.campusInfo.course) newErrors.course = "Course is required";
+
+    if (!formData.studentDetails.fullName)
+      newErrors.fullName = "Full name is required";
+
+    if (!formData.studentDetails.contact)
+      newErrors.contact = "Contact is required";
+
+    if (!formData.studentDetails.email) newErrors.email = "Email is required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  // ✅ Submit
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validate()) return;
+
+    try {
+      const res = await fetch("http://localhost:5000/api/applications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message); // backend error
+        return;
+      }
+
+      alert("Application Submitted Successfully ✅");
+
+      // optional: reset form
+      setFormData({
+        campusInfo: { campus: "", campusLocation: "", course: "" },
+        studentDetails: {
+          fullName: "",
+          dob: "",
+          gender: "",
+          caste: "",
+          aadhaar: "",
+          nationality: "Indian",
+          address: "",
+          city: "",
+          state: "West Bengal",
+          pinCode: "",
+          contact: "",
+          email: "",
+        },
+        parentDetails: {
+          fatherName: "",
+          fatherOccupation: "",
+          fatherPhone: "",
+          motherName: "",
+          motherOccupation: "",
+          motherPhone: "",
+        },
+        guardian: { name: "", phone: "" },
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong");
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto">
       {/* ================= HEADER ================= */}
@@ -13,7 +128,7 @@ const OnlineApplication = () => {
 
       {/* ================= FORM CARD ================= */}
       <div className="p-10 bg-white shadow-lg rounded-2xl">
-        <form className="space-y-12">
+        <form onSubmit={handleSubmit} className="space-y-12">
           {/* ================= CAMPUS & COURSE ================= */}
           <section>
             <h3 className="pl-3 mb-6 text-lg font-bold text-gray-900 border-l-4 border-indigo-600">
@@ -23,12 +138,24 @@ const OnlineApplication = () => {
             <div className="grid gap-6 md:grid-cols-2">
               <div>
                 <label className="form-label">Campus</label>
-                <input type="text" className="mt-1 form-input" />
+                <input
+                  type="text"
+                  className="mt-1 form-input"
+                  onChange={(e) =>
+                    handleChange("campusInfo", "campus", e.target.value)
+                  }
+                />
               </div>
 
               <div>
                 <label className="form-label">Campus Location</label>
-                <input type="text" className="mt-1 form-input" />
+                <input
+                  type="text"
+                  className="mt-1 form-input"
+                  onChange={(e) =>
+                    handleChange("campusInfo", "campusLocation", e.target.value)
+                  }
+                />
               </div>
             </div>
 
@@ -36,7 +163,16 @@ const OnlineApplication = () => {
               <label className="form-label">
                 Course Applied For <span className="required">*</span>
               </label>
-              <input type="text" className="mt-1 form-input" />
+              <input
+                type="text"
+                className="mt-1 form-input"
+                onChange={(e) =>
+                  handleChange("campusInfo", "course", e.target.value)
+                }
+              />
+              {errors.course && (
+                <p className="text-red-500 text-sm">{errors.course}</p>
+              )}
             </div>
           </section>
 
@@ -50,18 +186,38 @@ const OnlineApplication = () => {
               <label className="form-label">
                 Full Name <span className="required">*</span>
               </label>
-              <input type="text" className="mt-1 form-input" />
+              <input
+                type="text"
+                className="mt-1 form-input"
+                onChange={(e) =>
+                  handleChange("studentDetails", "fullName", e.target.value)
+                }
+              />
+              {errors.fullName && (
+                <p className="text-red-500 text-sm">{errors.fullName}</p>
+              )}
             </div>
 
             <div className="grid gap-6 mt-6 md:grid-cols-3">
               <div>
                 <label className="form-label">Date of Birth</label>
-                <input type="date" className="mt-1 text-gray-600 form-input" />
+                <input
+                  type="date"
+                  className="mt-1 text-gray-600 form-input"
+                  onChange={(e) =>
+                    handleChange("studentDetails", "dob", e.target.value)
+                  }
+                />
               </div>
 
               <div>
                 <label className="form-label">Gender</label>
-                <select className="mt-1 text-gray-600 form-input">
+                <select
+                  className="mt-1 text-gray-600 form-input"
+                  onChange={(e) =>
+                    handleChange("studentDetails", "gender", e.target.value)
+                  }
+                >
                   <option value="">Select</option>
                   <option>Male</option>
                   <option>Female</option>
@@ -71,14 +227,26 @@ const OnlineApplication = () => {
 
               <div>
                 <label className="form-label">Caste</label>
-                <input type="text" className="mt-1 form-input" />
+                <input
+                  type="text"
+                  className="mt-1 form-input"
+                  onChange={(e) =>
+                    handleChange("studentDetails", "caste", e.target.value)
+                  }
+                />
               </div>
             </div>
 
             <div className="grid gap-6 mt-6 md:grid-cols-2">
               <div>
                 <label className="form-label">Aadhaar No</label>
-                <input type="text" className="mt-1 form-input" />
+                <input
+                  type="text"
+                  className="mt-1 form-input"
+                  onChange={(e) =>
+                    handleChange("studentDetails", "aadhaar", e.target.value)
+                  }
+                />
               </div>
 
               <div>
@@ -94,13 +262,25 @@ const OnlineApplication = () => {
 
             <div className="mt-6">
               <label className="form-label">Full Address</label>
-              <textarea rows="3" className="mt-1 form-input"></textarea>
+              <textarea
+                rows="3"
+                className="mt-1 form-input"
+                onChange={(e) =>
+                  handleChange("studentDetails", "address", e.target.value)
+                }
+              ></textarea>
             </div>
 
             <div className="grid gap-6 mt-6 md:grid-cols-3">
               <div>
                 <label className="form-label">City</label>
-                <input type="text" className="mt-1 form-input" />
+                <input
+                  type="text"
+                  className="mt-1 form-input"
+                  onChange={(e) =>
+                    handleChange("studentDetails", "city", e.target.value)
+                  }
+                />
               </div>
 
               <div>
@@ -115,7 +295,13 @@ const OnlineApplication = () => {
 
               <div>
                 <label className="form-label">Pin Code</label>
-                <input type="text" className="mt-1 form-input" />
+                <input
+                  type="text"
+                  className="mt-1 form-input"
+                  onChange={(e) =>
+                    handleChange("studentDetails", "pinCode", e.target.value)
+                  }
+                />
               </div>
             </div>
 
@@ -124,14 +310,32 @@ const OnlineApplication = () => {
                 <label className="form-label">
                   Contact No <span className="required">*</span>
                 </label>
-                <input type="tel" className="mt-1 form-input" />
+                <input
+                  type="tel"
+                  className="mt-1 form-input"
+                  onChange={(e) =>
+                    handleChange("studentDetails", "contact", e.target.value)
+                  }
+                />
+                {errors.contact && (
+                  <p className="text-red-500 text-sm">{errors.contact}</p>
+                )}
               </div>
 
               <div>
                 <label className="form-label">
                   Email <span className="required">*</span>
                 </label>
-                <input type="email" className="mt-1 form-input" />
+                <input
+                  type="email"
+                  className="mt-1 form-input"
+                  onChange={(e) =>
+                    handleChange("studentDetails", "email", e.target.value)
+                  }
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm">{errors.email}</p>
+                )}
               </div>
             </div>
           </section>
@@ -147,13 +351,30 @@ const OnlineApplication = () => {
                 type="text"
                 placeholder="Father Name"
                 className="form-input"
+                onChange={(e) =>
+                  handleChange("parentDetails", "fatherName", e.target.value)
+                }
               />
               <input
                 type="text"
                 placeholder="Occupation"
                 className="form-input"
+                onChange={(e) =>
+                  handleChange(
+                    "parentDetails",
+                    "fatherOccupation",
+                    e.target.value,
+                  )
+                }
               />
-              <input type="tel" placeholder="Phone" className="form-input" />
+              <input
+                type="tel"
+                placeholder="Phone"
+                className="form-input"
+                onChange={(e) =>
+                  handleChange("parentDetails", "fatherPhone", e.target.value)
+                }
+              />
             </div>
 
             <div className="grid gap-6 mt-6 md:grid-cols-3">
@@ -161,13 +382,30 @@ const OnlineApplication = () => {
                 type="text"
                 placeholder="Mother Name"
                 className="form-input"
+                onChange={(e) =>
+                  handleChange("parentDetails", "motherName", e.target.value)
+                }
               />
               <input
                 type="text"
                 placeholder="Occupation"
                 className="form-input"
+                onChange={(e) =>
+                  handleChange(
+                    "parentDetails",
+                    "motherOccupation",
+                    e.target.value,
+                  )
+                }
               />
-              <input type="tel" placeholder="Phone" className="form-input" />
+              <input
+                type="tel"
+                placeholder="Phone"
+                className="form-input"
+                onChange={(e) =>
+                  handleChange("parentDetails", "motherPhone", e.target.value)
+                }
+              />
             </div>
 
             <div className="mt-6">
@@ -175,6 +413,9 @@ const OnlineApplication = () => {
                 type="text"
                 placeholder="Local Guardian (if any)"
                 className="form-input"
+                onChange={(e) =>
+                  handleChange("guardian", "name", e.target.value)
+                }
               />
             </div>
           </section>
