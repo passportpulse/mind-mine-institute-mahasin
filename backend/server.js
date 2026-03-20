@@ -9,6 +9,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ✅ ADD THIS HERE
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
+});
+
+
 // Routes
 app.use("/api/applications", require("./routes/applicationRoutes"));
 
