@@ -64,7 +64,7 @@ const OnlineApplication = () => {
     if (!validate()) return;
 
     try {
-      const res = await fetch("https://mind-mine-institute-mahasin.onrender.com/", {
+      const res = await fetch("https://mind-mine-institute-mahasin.onrender.com/api/applications", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
