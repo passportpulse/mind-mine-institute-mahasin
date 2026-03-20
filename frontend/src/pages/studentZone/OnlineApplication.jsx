@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { API_BASE_URL } from "../../config/api";
 
 const OnlineApplication = () => {
   const initialFormState = {
-    campusInfo: { campus: "", campusLocation: "", course: "" },
+    campusInfo: { campus: "", campusLocation: "", course: "" }, // campusLocation is used here
     studentDetails: {
       fullName: "",
       dob: "",
@@ -35,7 +36,6 @@ const OnlineApplication = () => {
   const [trackingId, setTrackingId] = useState("");
 
   const handleChange = (section, field, value) => {
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => {
         const newErrs = { ...prev };
@@ -46,42 +46,58 @@ const OnlineApplication = () => {
 
     setFormData((prev) => ({
       ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value,
-      },
+      [section]: { ...prev[section], [field]: value },
     }));
   };
 
-  // ✅ Advanced Validation
   const validate = () => {
     let newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const aadhaarRegex = /^\d{12}$/;
 
-    if (!formData.campusInfo.course.trim())
-      newErrors.course = "Please select or enter a course";
+    // Campus Validations
+    if (!formData.campusInfo.campus.trim()) newErrors.campus = "Required";
+    if (!formData.campusInfo.campusLocation.trim())
+      newErrors.campusLocation = "Required"; // Added Location Validation
+    if (!formData.campusInfo.course.trim()) newErrors.course = "Required";
+
+    // Student Validations
     if (!formData.studentDetails.fullName.trim())
-      newErrors.fullName = "Full name is required";
+      newErrors.fullName = "Required";
+    if (!formData.studentDetails.dob) newErrors.dob = "Required";
+    if (!formData.studentDetails.gender) newErrors.gender = "Required";
+    if (!formData.studentDetails.caste.trim()) newErrors.caste = "Required";
+    if (!aadhaarRegex.test(formData.studentDetails.aadhaar))
+      newErrors.aadhaar = "Must be 12 digits";
+    if (!formData.studentDetails.address.trim()) newErrors.address = "Required";
+    if (
+      !formData.studentDetails.contact ||
+      formData.studentDetails.contact.length !== 10
+    )
+      newErrors.contact = "Must be 10 digits";
+    if (!emailRegex.test(formData.studentDetails.email))
+      newErrors.email = "Invalid email";
 
-    // Contact Validation
-    if (!formData.studentDetails.contact) {
-      newErrors.contact = "Contact number is required";
-    } else if (formData.studentDetails.contact.length < 10) {
-      newErrors.contact = "Enter a valid 10-digit number";
-    }
-
-    // Email Validation
-    if (!formData.studentDetails.email) {
-      newErrors.email = "Email address is required";
-    } else if (!emailRegex.test(formData.studentDetails.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
+    // Parent Validations
+    if (!formData.parentDetails.fatherName.trim())
+      newErrors.fatherName = "Required";
+    if (
+      !formData.parentDetails.fatherPhone ||
+      formData.parentDetails.fatherPhone.length !== 10
+    )
+      newErrors.fatherPhone = "Must be 10 digits";
+    if (!formData.parentDetails.motherName.trim())
+      newErrors.motherName = "Required";
+    if (
+      !formData.parentDetails.motherPhone ||
+      formData.parentDetails.motherPhone.length !== 10
+    )
+      newErrors.motherPhone = "Must be 10 digits";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // ✅ Submit Logic
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
@@ -90,37 +106,37 @@ const OnlineApplication = () => {
     }
 
     setIsSubmitting(true);
-
     try {
-      const res = await fetch(
-        "https://mind-mine-institute-mahasin.onrender.com/api/applications",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        },
-      );
+      const res = await fetch(`${API_BASE_URL}/applications`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Submission failed");
 
-      if (!res.ok) {
-        throw new Error(data.message || "Submission failed");
-      }
-      // ✅ Save tracking ID
       setTrackingId(data.trackingId);
       setIsSubmitted(true);
       setFormData(initialFormState);
     } catch (err) {
-      console.error(err);
-      alert(err.message || "Something went wrong. Please try again.");
+      alert(err.message || "Something went wrong.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const Label = ({ text, required }) => (
+    <label className="text-sm font-semibold text-gray-700 ml-1">
+      {text} {required && <span className="text-red-500">*</span>}
+    </label>
+  );
+
+  const today = new Date().toISOString().split("T")[0];
+
   if (isSubmitted) {
     return (
-      <div className="max-w-2xl mx-auto mt-20 text-center p-10 bg-white shadow-2xl rounded-3xl border border-green-100">
+      <div className="max-w-2xl mx-auto mt-20 text-center p-10 bg-white shadow-2xl rounded-3xl border border-green-100 animate-fadeIn">
         <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -147,20 +163,43 @@ const OnlineApplication = () => {
           successfully.
         </p>
 
-        {/* 🔥 ADD THIS BLOCK */}
-        <div className="mt-6 p-4 bg-indigo-50 border border-indigo-200 rounded-xl">
-          <p className="text-sm text-gray-500">Your Tracking ID</p>
-          <p className="text-2xl font-bold text-indigo-600 tracking-wider">
-            {trackingId}
+        <div className="mt-6 p-6 bg-indigo-50 border border-indigo-200 rounded-2xl">
+          <p className="text-sm text-gray-500 uppercase tracking-wider font-bold">
+            Your Tracking ID
           </p>
-          <p className="text-sm text-green-600 mt-2 font-semibold bg-green-50 px-3 py-2 rounded-lg inline-block">
-            ⚠️ Please save this ID to track your application
+          <p className="text-3xl font-black text-indigo-600 mt-1">
+            MMI-{trackingId}
+          </p>
+        </div>
+
+        {/* IMPORTANT NOTICE HIGHLIGHT */}
+        <div className="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-xl">
+          <div className="flex items-center">
+            <svg
+              className="h-5 w-5 text-yellow-400 mr-2"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <p className="text-sm text-yellow-800 font-bold uppercase">
+              Important Notice
+            </p>
+          </div>
+          <p className="text-sm text-yellow-700 mt-2 text-left ml-7">
+            Please <strong>save this Tracking ID</strong> carefully. You will
+            need this ID to check your admission status and download your
+            acknowledgement slip later.
           </p>
         </div>
 
         <button
           onClick={() => setIsSubmitted(false)}
-          className="mt-8 px-8 py-3 bg-indigo-600 text-white font-bold rounded-full hover:bg-indigo-700 transition"
+          className="mt-8 px-8 py-3 bg-indigo-600 text-white font-bold rounded-full hover:bg-indigo-700 transition shadow-lg shadow-indigo-200"
         >
           Submit Another Application
         </button>
@@ -170,329 +209,325 @@ const OnlineApplication = () => {
 
   return (
     <div className="max-w-5xl mx-auto py-10 px-4">
-      {/* ================= HEADER ================= */}
       <div className="mb-10 text-center md:text-left">
         <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">
           Student Enrollment <span className="text-indigo-600">Form</span>
         </h2>
-        <p className="mt-2 text-lg text-gray-500">
-          Session: 2025–2026 | Admission Office
+        <p className="mt-2 text-lg text-gray-500 font-medium">
+          Session: 2026–2027 | Admission Office
         </p>
       </div>
 
-      {/* ================= FORM CARD ================= */}
       <div className="p-6 md:p-12 bg-white shadow-2xl rounded-3xl border border-gray-100">
         <form onSubmit={handleSubmit} className="space-y-12">
-          {/* CAMPUS INFO */}
+          {/* SECTION 1: CAMPUS */}
           <section>
-            <div className="flex items-center mb-6">
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-600 text-white text-sm font-bold mr-3">
+            <div className="flex items-center mb-8 pb-2 border-b">
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-600 text-white text-sm font-bold mr-3 shadow-md">
                 1
               </span>
               <h3 className="text-xl font-bold text-gray-900">
                 Campus & Course Info
               </h3>
             </div>
-
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-3">
+              {" "}
+              {/* Changed to grid-cols-3 for cleaner look with Location */}
               <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700 ml-1">
-                  Campus
-                </label>
+                <Label text="Campus" required />
                 <input
                   type="text"
                   placeholder="e.g. Main Campus"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                  className={`w-full px-4 py-3 rounded-xl border transition-all outline-none ${errors.campus ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
                   value={formData.campusInfo.campus}
                   onChange={(e) =>
                     handleChange("campusInfo", "campus", e.target.value)
                   }
                 />
               </div>
-
               <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700 ml-1">
-                  Campus Location
-                </label>
+                <Label text="Location" required />
                 <input
                   type="text"
-                  placeholder="City/District"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                  placeholder="e.g. Kolkata"
+                  className={`w-full px-4 py-3 rounded-xl border transition-all outline-none ${errors.campusLocation ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
                   value={formData.campusInfo.campusLocation}
                   onChange={(e) =>
                     handleChange("campusInfo", "campusLocation", e.target.value)
                   }
                 />
               </div>
-            </div>
-
-            <div className="mt-6 space-y-1">
-              <label className="text-sm font-semibold text-gray-700 ml-1">
-                Course Applied For{" "}
-                <span className="text-red-500 font-bold">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="Enter full course name"
-                className={`w-full px-4 py-3 rounded-xl border transition-all outline-none ${errors.course ? "border-red-500 bg-red-50" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
-                value={formData.campusInfo.course}
-                onChange={(e) =>
-                  handleChange("campusInfo", "course", e.target.value)
-                }
-              />
-              {errors.course && (
-                <p className="text-red-500 text-xs mt-1 ml-1">
-                  {errors.course}
-                </p>
-              )}
+              <div className="space-y-1">
+                <Label text="Course Applied" required />
+                <input
+                  type="text"
+                  placeholder="e.g. B.Tech CS"
+                  className={`w-full px-4 py-3 rounded-xl border transition-all outline-none ${errors.course ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
+                  value={formData.campusInfo.course}
+                  onChange={(e) =>
+                    handleChange("campusInfo", "course", e.target.value)
+                  }
+                />
+              </div>
             </div>
           </section>
 
-          {/* STUDENT DETAILS */}
+          {/* SECTION 2: STUDENT */}
           <section>
-            <div className="flex items-center mb-6">
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-600 text-white text-sm font-bold mr-3">
+            <div className="flex items-center mb-8 pb-2 border-b">
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-600 text-white text-sm font-bold mr-3 shadow-md">
                 2
               </span>
               <h3 className="text-xl font-bold text-gray-900">
                 Student Details
               </h3>
             </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-gray-700 ml-1">
-                Full Name <span className="text-red-500 font-bold">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="As per Aadhaar/Class 10th Certificate"
-                className={`w-full px-4 py-3 rounded-xl border transition-all outline-none ${errors.fullName ? "border-red-500 bg-red-50" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
-                value={formData.studentDetails.fullName}
-                onChange={(e) =>
-                  handleChange("studentDetails", "fullName", e.target.value)
-                }
-              />
-              {errors.fullName && (
-                <p className="text-red-500 text-xs mt-1 ml-1">
-                  {errors.fullName}
-                </p>
-              )}
-            </div>
-
-            <div className="grid gap-6 mt-6 md:grid-cols-3">
+            <div className="grid gap-6">
               <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700 ml-1">
-                  Date of Birth
-                </label>
-                <input
-                  type="date"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none"
-                  value={formData.studentDetails.dob}
-                  onChange={(e) =>
-                    handleChange("studentDetails", "dob", e.target.value)
-                  }
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700 ml-1">
-                  Gender
-                </label>
-                <select
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none bg-white"
-                  value={formData.studentDetails.gender}
-                  onChange={(e) =>
-                    handleChange("studentDetails", "gender", e.target.value)
-                  }
-                >
-                  <option value="">Select</option>
-                  <option>Male</option>
-                  <option>Female</option>
-                  <option>Other</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700 ml-1">
-                  Caste
-                </label>
+                <Label text="Full Name" required />
                 <input
                   type="text"
-                  placeholder="General/OBC/SC/ST"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none"
-                  value={formData.studentDetails.caste}
+                  placeholder="Enter Full Name"
+                  className={`w-full px-4 py-3 rounded-xl border transition-all outline-none ${errors.fullName ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
+                  value={formData.studentDetails.fullName}
                   onChange={(e) =>
-                    handleChange("studentDetails", "caste", e.target.value)
+                    handleChange("studentDetails", "fullName", e.target.value)
                   }
                 />
               </div>
-            </div>
 
-            <div className="grid gap-6 mt-6 md:grid-cols-2">
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700 ml-1">
-                  Contact No <span className="text-red-500 font-bold">*</span>
-                </label>
-                <input
-                  type="tel"
-                  placeholder="10-digit mobile number"
-                  className={`w-full px-4 py-3 rounded-xl border transition-all outline-none ${errors.contact ? "border-red-500 bg-red-50" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
-                  value={formData.studentDetails.contact}
-                  onChange={(e) =>
-                    handleChange("studentDetails", "contact", e.target.value)
-                  }
-                />
-                {errors.contact && (
-                  <p className="text-red-500 text-xs mt-1 ml-1">
-                    {errors.contact}
-                  </p>
-                )}
+              <div className="grid gap-6 md:grid-cols-3">
+                <div className="space-y-1">
+                  <Label text="Date of Birth" required />
+                  <input
+                    type="date"
+                    max={today}
+                    className={`w-full px-4 py-3 rounded-xl border transition-all ${errors.dob ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
+                    value={formData.studentDetails.dob}
+                    onChange={(e) =>
+                      handleChange("studentDetails", "dob", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label text="Gender" required />
+                  <select
+                    className={`w-full px-4 py-3 rounded-xl border transition-all bg-white ${errors.gender ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
+                    value={formData.studentDetails.gender}
+                    onChange={(e) =>
+                      handleChange("studentDetails", "gender", e.target.value)
+                    }
+                  >
+                    <option value="">Select</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <Label text="Contact No" required />
+                  <input
+                    type="tel"
+                    maxLength="10"
+                    placeholder="10-digit number"
+                    className={`w-full px-4 py-3 rounded-xl border transition-all ${errors.contact ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
+                    value={formData.studentDetails.contact}
+                    onChange={(e) =>
+                      handleChange(
+                        "studentDetails",
+                        "contact",
+                        e.target.value.replace(/\D/g, ""),
+                      )
+                    }
+                  />
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700 ml-1">
-                  Email <span className="text-red-500 font-bold">*</span>
-                </label>
-                <input
-                  type="email"
-                  placeholder="example@gmail.com"
-                  className={`w-full px-4 py-3 rounded-xl border transition-all outline-none ${errors.email ? "border-red-500 bg-red-50" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
-                  value={formData.studentDetails.email}
-                  onChange={(e) =>
-                    handleChange("studentDetails", "email", e.target.value)
-                  }
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-xs mt-1 ml-1">
-                    {errors.email}
-                  </p>
-                )}
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-1">
+                  <Label text="Caste" required />
+                  <input
+                    type="text"
+                    placeholder="General / SC / ST / OBC"
+                    className={`w-full px-4 py-3 rounded-xl border transition-all outline-none ${errors.caste ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
+                    value={formData.studentDetails.caste}
+                    onChange={(e) =>
+                      handleChange("studentDetails", "caste", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label text="Aadhaar Number" required />
+                  <input
+                    type="text"
+                    maxLength="12"
+                    placeholder="12-digit Aadhaar number"
+                    className={`w-full px-4 py-3 rounded-xl border transition-all outline-none ${errors.aadhaar ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
+                    value={formData.studentDetails.aadhaar}
+                    onChange={(e) =>
+                      handleChange(
+                        "studentDetails",
+                        "aadhaar",
+                        e.target.value.replace(/\D/g, ""),
+                      )
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-1">
+                  <Label text="Email" required />
+                  <input
+                    type="email"
+                    placeholder="example@gmail.com"
+                    className={`w-full px-4 py-3 rounded-xl border transition-all ${errors.email ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
+                    value={formData.studentDetails.email}
+                    onChange={(e) =>
+                      handleChange("studentDetails", "email", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label text="Address" required />
+                  <input
+                    type="text"
+                    placeholder="Full residential address"
+                    className={`w-full px-4 py-3 rounded-xl border transition-all ${errors.address ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
+                    value={formData.studentDetails.address}
+                    onChange={(e) =>
+                      handleChange("studentDetails", "address", e.target.value)
+                    }
+                  />
+                </div>
               </div>
             </div>
           </section>
 
-          {/* PARENT DETAILS */}
+          {/* SECTION 3: PARENTS */}
           <section>
-            <div className="flex items-center mb-6">
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-600 text-white text-sm font-bold mr-3">
+            <div className="flex items-center mb-8 pb-2 border-b">
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-600 text-white text-sm font-bold mr-3 shadow-md">
                 3
               </span>
               <h3 className="text-xl font-bold text-gray-900">
-                Parent / Guardian Details
+                Parent Details
               </h3>
             </div>
-
-            <div className="grid gap-4 md:grid-cols-3 p-4 bg-gray-50 rounded-2xl mb-6">
-              <input
-                type="text"
-                placeholder="Father's Name"
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white outline-none focus:ring-2 focus:ring-indigo-500"
-                value={formData.parentDetails.fatherName}
-                onChange={(e) =>
-                  handleChange("parentDetails", "fatherName", e.target.value)
-                }
-              />
-              <input
-                type="text"
-                placeholder="Occupation"
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white outline-none focus:ring-2 focus:ring-indigo-500"
-                value={formData.parentDetails.fatherOccupation}
-                onChange={(e) =>
-                  handleChange(
-                    "parentDetails",
-                    "fatherOccupation",
-                    e.target.value,
-                  )
-                }
-              />
-              <input
-                type="tel"
-                placeholder="Father's Phone"
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white outline-none focus:ring-2 focus:ring-indigo-500"
-                value={formData.parentDetails.fatherPhone}
-                onChange={(e) =>
-                  handleChange("parentDetails", "fatherPhone", e.target.value)
-                }
-              />
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3 p-4 bg-gray-50 rounded-2xl">
-              <input
-                type="text"
-                placeholder="Mother's Name"
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white outline-none focus:ring-2 focus:ring-indigo-500"
-                value={formData.parentDetails.motherName}
-                onChange={(e) =>
-                  handleChange("parentDetails", "motherName", e.target.value)
-                }
-              />
-              <input
-                type="text"
-                placeholder="Occupation"
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white outline-none focus:ring-2 focus:ring-indigo-500"
-                value={formData.parentDetails.motherOccupation}
-                onChange={(e) =>
-                  handleChange(
-                    "parentDetails",
-                    "motherOccupation",
-                    e.target.value,
-                  )
-                }
-              />
-              <input
-                type="tel"
-                placeholder="Mother's Phone"
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white outline-none focus:ring-2 focus:ring-indigo-500"
-                value={formData.parentDetails.motherPhone}
-                onChange={(e) =>
-                  handleChange("parentDetails", "motherPhone", e.target.value)
-                }
-              />
+            <div className="grid gap-6 p-6 bg-gray-50 rounded-2xl border border-gray-100">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-1">
+                  <Label text="Father's Name" required />
+                  <input
+                    type="text"
+                    placeholder="Father's Name"
+                    className={`w-full p-3 rounded-xl border bg-white ${errors.fatherName ? "border-red-500" : "border-gray-300"}`}
+                    value={formData.parentDetails.fatherName}
+                    onChange={(e) =>
+                      handleChange(
+                        "parentDetails",
+                        "fatherName",
+                        e.target.value,
+                      )
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label text="Occupation" />
+                  <input
+                    type="text"
+                    placeholder="Job"
+                    className="w-full p-3 rounded-xl border bg-white"
+                    value={formData.parentDetails.fatherOccupation}
+                    onChange={(e) =>
+                      handleChange(
+                        "parentDetails",
+                        "fatherOccupation",
+                        e.target.value,
+                      )
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label text="Phone Number" required />
+                  <input
+                    type="tel"
+                    maxLength="10"
+                    placeholder="10-digit number"
+                    className={`w-full p-3 rounded-xl border bg-white ${errors.fatherPhone ? "border-red-500" : "border-gray-300"}`}
+                    value={formData.parentDetails.fatherPhone}
+                    onChange={(e) =>
+                      handleChange(
+                        "parentDetails",
+                        "fatherPhone",
+                        e.target.value.replace(/\D/g, ""),
+                      )
+                    }
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-1">
+                  <Label text="Mother's Name" required />
+                  <input
+                    type="text"
+                    placeholder="Mother's Name"
+                    className={`w-full p-3 rounded-xl border bg-white ${errors.motherName ? "border-red-500" : "border-gray-300"}`}
+                    value={formData.parentDetails.motherName}
+                    onChange={(e) =>
+                      handleChange(
+                        "parentDetails",
+                        "motherName",
+                        e.target.value,
+                      )
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label text="Occupation" />
+                  <input
+                    type="text"
+                    placeholder="Job"
+                    className="w-full p-3 rounded-xl border bg-white"
+                    value={formData.parentDetails.motherOccupation}
+                    onChange={(e) =>
+                      handleChange(
+                        "parentDetails",
+                        "motherOccupation",
+                        e.target.value,
+                      )
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label text="Phone Number" required />
+                  <input
+                    type="tel"
+                    maxLength="10"
+                    placeholder="10-digit number"
+                    className={`w-full p-3 rounded-xl border bg-white ${errors.motherPhone ? "border-red-500" : "border-gray-300"}`}
+                    value={formData.parentDetails.motherPhone}
+                    onChange={(e) =>
+                      handleChange(
+                        "parentDetails",
+                        "motherPhone",
+                        e.target.value.replace(/\D/g, ""),
+                      )
+                    }
+                  />
+                </div>
+              </div>
             </div>
           </section>
 
-          {/* SUBMIT BUTTON */}
-          <div className="pt-8 border-t border-gray-100 flex flex-col items-center">
+          <div className="pt-10 border-t flex flex-col items-center">
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`min-w-[250px] inline-flex items-center justify-center px-10 py-4 text-lg font-bold text-white transition-all rounded-full shadow-xl ${
-                isSubmitting
-                  ? "bg-indigo-400 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700 hover:-translate-y-1 active:scale-95"
-              }`}
+              className={`min-w-[280px] px-10 py-4 text-lg font-bold text-white transition-all rounded-full shadow-2xl ${isSubmitting ? "bg-indigo-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700 active:scale-95"}`}
             >
-              {isSubmitting ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Submitting Application...
-                </>
-              ) : (
-                "Submit Application"
-              )}
+              {isSubmitting ? "Submitting..." : "Submit Application"}
             </button>
-            <p className="mt-4 text-sm text-gray-500 italic">
-              Please review all fields before submitting.
-            </p>
           </div>
         </form>
       </div>

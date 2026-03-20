@@ -15,16 +15,19 @@ const AdminLayout = () => {
         <h2 className="mb-6 text-xl font-bold">Admin Panel</h2>
 
         <button
+          onClick={() => navigate("/admin/dashboard")}
+          className="block w-full mb-3 text-left"
+        >
+          Dashboard
+        </button>
+        <button
           onClick={() => navigate("/admin/applications")}
           className="block w-full mb-3 text-left"
         >
           Applications
         </button>
 
-        <button
-          onClick={handleLogout}
-          className="mt-10 text-red-400"
-        >
+        <button onClick={handleLogout} className="mt-10 text-red-400">
           Logout
         </button>
       </div>

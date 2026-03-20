@@ -24,7 +24,6 @@ import ProtectedRoute from "./components/admin/ProtectedRoute";
 import AdminLayout from "./components/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Applications from "./pages/admin/Applications";
-import EditApplication from "./pages/admin/EditApplication";
 import AdminLogin from "./pages/admin/AdminLogin";
 
 const App = () => {
@@ -86,7 +85,6 @@ const App = () => {
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="applications" element={<Applications />} />
-            <Route path="edit/:id" element={<EditApplication />} />
           </Route>
         </Route>
       </Routes>
