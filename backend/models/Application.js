@@ -6,6 +6,14 @@ const applicationSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+     fees: {
+      type: Number,
+    },
     campusInfo: {
       campus: String,
       campusLocation: String,
