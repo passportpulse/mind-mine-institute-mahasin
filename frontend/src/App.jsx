@@ -19,6 +19,7 @@ import Enquiry from "./pages/studentZone/Enquiry";
 import OnlineApplication from "./pages/studentZone/OnlineApplication";
 import Notice from "./pages/studentZone/Notice";
 import Payment from "./pages/studentZone/Payment";
+import CheckStatus from "./pages/studentZone/CheckStatus";
 
 const App = () => {
   return (
@@ -51,6 +52,7 @@ const App = () => {
           <Route path="online-application" element={<OnlineApplication />} />
           <Route path="notice" element={<Notice />} />
           <Route path="payment" element={<Payment />} />
+          <Route path="check-status" element={<CheckStatus />} />
         </Route>
       </Routes>
 

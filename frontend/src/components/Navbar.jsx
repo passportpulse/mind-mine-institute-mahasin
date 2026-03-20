@@ -13,6 +13,7 @@ import {
   ClipboardList,
   Bell,
   CreditCard,
+  CheckCircle,
 } from "lucide-react";
 
 /* ================= DATA ================= */
@@ -33,6 +34,11 @@ const studentZoneMenu = [
     label: "Payment",
     path: "/student-zone/payment",
     icon: <CreditCard size={18} />,
+  },
+  {
+    label: "Check Status",
+    path: "/student-zone/check-status",
+    icon: <CheckCircle size={18} />,
   },
 ];
 

@@ -6,6 +6,7 @@ const pageTitleMap = {
   "/student-zone/online-application": "Online Application",
   "/student-zone/notice": "Notice",
   "/student-zone/payment": "Payment",
+  "/student-zone/check-status": "Check Status",
 };
 
 const StudentZoneLayout = () => {
