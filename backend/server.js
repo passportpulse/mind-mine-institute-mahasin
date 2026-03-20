@@ -6,7 +6,14 @@ require("dotenv").config();
 const app = express();
 
 // ✅ Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: "*", // or your frontend URL (better for production)
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "admin-auth"], // 🔥 IMPORTANT
+  })
+);
+
 app.use(express.json());
 
 // ✅ Test Route
