@@ -11,16 +11,22 @@ const Dashboard = () => {
   const fetchData = async () => {
     try {
       const res = await fetch(
-        "https://mind-mine-institute-mahasin.onrender.com/api/applications"
+        "https://mind-mine-institute-mahasin.onrender.com/api/applications",
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "admin-auth": "true",
+          },
+        },
       );
-      const data = await res.json();
 
-      const apps = data.data;
+      const data = await res.json();
+      const apps = data.data || [];
 
       const total = apps.length;
-      const pending = apps.filter(a => a.status === "pending").length;
-      const approved = apps.filter(a => a.status === "approved").length;
-      const rejected = apps.filter(a => a.status === "rejected").length;
+      const pending = apps.filter((a) => a.status === "pending").length;
+      const approved = apps.filter((a) => a.status === "approved").length;
+      const rejected = apps.filter((a) => a.status === "rejected").length;
 
       setStats({ total, pending, approved, rejected });
     } catch (err) {
