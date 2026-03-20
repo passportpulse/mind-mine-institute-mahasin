@@ -16,7 +16,7 @@ const Dashboard = () => {
           headers: {
             "Content-Type": "application/json",
             "admin-auth": "true",
-          },
+          }
         },
       );
 
