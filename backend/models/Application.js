@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const applicationSchema = new mongoose.Schema(
   {
+    trackingId: {
+      type: String,
+      unique: true,
+    },
     campusInfo: {
       campus: String,
       campusLocation: String,
@@ -34,7 +38,7 @@ const applicationSchema = new mongoose.Schema(
       phone: String,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("Application", applicationSchema);

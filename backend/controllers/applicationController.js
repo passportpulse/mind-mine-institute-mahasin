@@ -1,10 +1,14 @@
 const Application = require("../models/Application");
-
+// 🔹 Function to generate tracking ID
+const generateTrackingId = () => {
+  const random = Math.floor(1000 + Math.random() * 9000);
+  return `MMI-${Date.now().toString().slice(-6)}-${random}`;
+};
 exports.createApplication = async (req, res) => {
   try {
     const { campusInfo, studentDetails } = req.body;
 
-    // 🔴 Backend Validation
+    // ✅ Validation (same as yours)
     if (!campusInfo?.course) {
       return res.status(400).json({ message: "Course is required" });
     }
@@ -21,25 +25,32 @@ exports.createApplication = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    // Optional: Email format check
     const emailRegex = /^\S+@\S+\.\S+$/;
     if (!emailRegex.test(studentDetails.email)) {
       return res.status(400).json({ message: "Invalid email format" });
     }
 
-    // Optional: Phone validation
     if (studentDetails.contact.length < 10) {
       return res.status(400).json({ message: "Invalid contact number" });
     }
 
-    // ✅ Save to DB
-    const application = await Application.create(req.body);
+    // 🔥 Generate Tracking ID
+    const trackingId = generateTrackingId();
 
+    // ✅ Save with trackingId
+    const application = await Application.create({
+      ...req.body,
+      trackingId,
+    });
+
+    // ✅ Send trackingId to frontend
     res.status(201).json({
       success: true,
       message: "Application submitted successfully",
+      trackingId: application.trackingId,
       data: application,
     });
+
   } catch (error) {
     res.status(500).json({
       message: "Server Error",
