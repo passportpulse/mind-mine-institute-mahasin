@@ -5,12 +5,14 @@ const {
   createApplication,
   getApplications,
   getApplicationById,
-  updateApplication, // 🔥 ADD
+  updateApplication,
+  getApplicationByTrackingId,
 } = require("../controllers/applicationController");
 
 router.post("/", createApplication);
 router.get("/", adminAuth, getApplications);
 router.get("/:id", adminAuth, getApplicationById);
-router.patch("/:id", adminAuth, updateApplication); // 🔥 ADD THIS
+router.patch("/:id", adminAuth, updateApplication);
+router.get("/status/:trackingId", getApplicationByTrackingId);
 
 module.exports = router;

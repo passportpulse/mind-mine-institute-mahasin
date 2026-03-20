@@ -5,14 +5,13 @@ require("dotenv").config();
 
 const app = express();
 
-// ✅ Middleware
-app.use(
-  cors({
-    origin: "*", // or your frontend URL (better for production)
-    methods: ["GET", "POST", "PATCH", "DELETE"],
-    allowedHeaders: ["Content-Type", "admin-auth"], // 🔥 IMPORTANT
-  })
-);
+// server.js
+app.use(cors({
+  origin: true, // This reflects the origin of the request (perfect for dev)
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "admin-auth", "Authorization"],
+  credentials: true
+}));
 
 app.use(express.json());
 

@@ -14,6 +14,11 @@ const applicationSchema = new mongoose.Schema(
      fees: {
       type: Number,
     },
+    applicationId: {
+      type: String,
+      unique: true,
+      sparse: true, // Allows null for pending/rejected apps
+    },
     campusInfo: {
       campus: String,
       campusLocation: String,

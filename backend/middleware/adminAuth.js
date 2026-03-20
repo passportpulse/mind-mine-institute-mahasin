@@ -1,11 +1,9 @@
+// middleware/adminAuth.js
 module.exports = (req, res, next) => {
-  // ✅ 1. Allow OPTIONS requests to pass through without check
-  if (req.method === "OPTIONS") {
-    return next();
-  }
+  if (req.method === "OPTIONS") return next();
 
-  console.log("HEADERS:", req.headers);
-  const isAdmin = req.headers["admin-auth"];
+  // Use req.header() instead of req.headers[]
+  const isAdmin = req.header("admin-auth"); 
 
   if (isAdmin === "true") {
     next();

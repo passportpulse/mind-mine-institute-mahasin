@@ -1,8 +1,10 @@
 const Application = require("../models/Application");
 // 🔹 Function to generate tracking ID
 const generateTrackingId = () => {
-  const random = Math.floor(1000 + Math.random() * 9000);
-  return `MMI-${Date.now().toString().slice(-6)}-${random}`;
+  const random = Math.floor(100 + Math.random() * 900); // 3 digits
+  const timestamp = Date.now().toString().slice(-4); // last 4 digits of time
+  // Format: MMI-629387-2846 (Similar to your requested format)
+  return `MMI-${Math.floor(100000 + Math.random() * 899999)}-${random}${timestamp.slice(-1)}`;
 };
 exports.createApplication = async (req, res) => {
   try {
@@ -59,20 +61,31 @@ exports.createApplication = async (req, res) => {
 };
 exports.updateApplication = async (req, res) => {
   try {
+    const { status } = req.body;
+    let updateData = { ...req.body };
+
+    if (status === "approved") {
+      // Generate ID only if it doesn't already exist (prevents overwriting on re-approval)
+      const existingApp = await Application.findById(req.params.id);
+      if (!existingApp.applicationId) {
+        const year = new Date().getFullYear();
+        const randomDigits = Math.floor(1000 + Math.random() * 9000);
+        updateData.applicationId = `MMI-${year}-${randomDigits}`;
+      }
+    } else {
+      // 🔥 If rejected or pending, remove the Application ID
+      updateData.applicationId = null;
+    }
+
     const updated = await Application.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true },
     );
 
-    res.json({
-      success: true,
-      data: updated,
-    });
+    res.json({ success: true, data: updated });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -102,5 +115,32 @@ exports.getApplicationById = async (req, res) => {
     res.json({ success: true, data: app });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+// Get Application by Tracking ID (Public)
+exports.getApplicationByTrackingId = async (req, res) => {
+  try {
+    const { trackingId } = req.params;
+
+    // Look for the trackingId in the database
+    const application = await Application.findOne({ trackingId });
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "No application found with this Tracking ID.",
+      });
+    }
+
+    // Return the data
+    res.json({
+      success: true,
+      data: application,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching status.",
+    });
   }
 };
