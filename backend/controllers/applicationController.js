@@ -50,7 +50,6 @@ exports.createApplication = async (req, res) => {
       trackingId: application.trackingId,
       data: application,
     });
-
   } catch (error) {
     res.status(500).json({
       message: "Server Error",
@@ -58,7 +57,24 @@ exports.createApplication = async (req, res) => {
     });
   }
 };
+exports.updateApplication = async (req, res) => {
+  try {
+    const updated = await Application.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true },
+    );
 
+    res.json({
+      success: true,
+      data: updated,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
 
 // Get All Applications
 exports.getApplications = async (req, res) => {
