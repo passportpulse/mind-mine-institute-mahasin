@@ -1,5 +1,5 @@
 export const API_BASE_URL =
-  "http://localhost:5000/api";
+  "https://mind-mine-institute-mahasin.onrender.com/api";
 
 export const getAdminHeaders = () => ({
   "Content-Type": "application/json",
