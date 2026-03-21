@@ -168,7 +168,7 @@ const OnlineApplication = () => {
             Your Tracking ID
           </p>
           <p className="text-3xl font-black text-indigo-600 mt-1">
-            MMI-{trackingId}
+            {trackingId}
           </p>
         </div>
 
