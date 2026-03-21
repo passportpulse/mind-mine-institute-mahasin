@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_BASE_URL } from "../../config/api";
 
 const CheckStatus = () => {
   const [trackingId, setTrackingId] = useState("");
@@ -18,7 +19,7 @@ const CheckStatus = () => {
 
     try {
       const res = await fetch(
-        `https://mind-mine-institute-mahasin.onrender.com/api/applications/track/${trackingId}`,
+        `${API_BASE_URL}/applications/status/${trackingId}`
       );
 
       const result = await res.json();
@@ -41,7 +42,7 @@ const CheckStatus = () => {
         Check Application Status
       </h2>
 
-      {/* 🔍 Input */}
+      {/* Input */}
       <div className="flex gap-3 mb-8">
         <input
           type="text"
@@ -58,10 +59,10 @@ const CheckStatus = () => {
         </button>
       </div>
 
-      {/* ❌ Error */}
+      {/* Error */}
       {error && <p className="text-red-500 text-center mb-6">{error}</p>}
 
-      {/* ✅ Result */}
+      {/* Result */}
       {data && (
         <div className="bg-white shadow-xl rounded-2xl p-6 border">
           <h3 className="text-xl font-bold mb-4">
@@ -78,85 +79,72 @@ const CheckStatus = () => {
             <span className="font-semibold">{data.trackingId}</span>
           </p>
 
-          {/* 🔥 STATUS */}
-          <div className="mt-4">
-            <p className="text-lg font-semibold">
-              Status:{" "}
-              <span
-                className={`px-3 py-1 rounded-full text-white ${
-                  data.status === "approved"
-                    ? "bg-green-500"
-                    : data.status === "rejected"
-                      ? "bg-red-500"
-                      : "bg-yellow-500"
-                }`}
-              >
-                {data.status.toUpperCase()}
-              </span>
-            </p>
-          </div>
+          {/* STATUS */}
+          <p className="text-lg font-semibold">
+            Status:{" "}
+            <span
+              className={`px-3 py-1 rounded-full text-white ${
+                data.status === "approved"
+                  ? "bg-green-500"
+                  : data.status === "rejected"
+                  ? "bg-red-500"
+                  : "bg-yellow-500"
+              }`}
+            >
+              {data.status.toUpperCase()}
+            </span>
+          </p>
 
-          {/* ✅ APPROVED SECTION: Show Fees and Official APP-ID */}
+          {/* ✅ APPROVED */}
           {data.status === "approved" && (
-            <div className="mt-8 space-y-4 animate-fadeIn">
-              {/* Official ID Card Style Box */}
-              <div className="p-4 bg-indigo-600 rounded-2xl shadow-lg border-b-4 border-indigo-800 flex justify-between items-center text-white">
+            <div className="mt-8 space-y-5">
+
+              {/* 🔥 IMPORTANT NOTICE */}
+              <div className="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-xl">
+                <p className="text-sm text-yellow-800 font-semibold">
+                  ⚠️ Important: Save your Application ID. It is required for
+                  login, fee payment, and verification.
+                </p>
+              </div>
+
+              {/* Application ID */}
+              <div className="p-4 bg-indigo-600 rounded-2xl text-white flex justify-between items-center">
                 <div>
-                  <p className="text-[10px] uppercase tracking-widest opacity-80 font-bold">
-                    Official Application ID
+                  <p className="text-xs uppercase opacity-80">
+                    Application ID
                   </p>
-                  <p className="text-xl font-black font-mono tracking-tighter">
-                    {data.applicationId || "Processing..."}
+                  <p className="text-xl font-bold font-mono">
+                    {data.applicationId || "Generating..."}
                   </p>
-                </div>
-                <div className="bg-white/20 p-2 rounded-lg">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
                 </div>
               </div>
 
-              {/* Fee Payment Info */}
-              <div className="p-5 bg-green-50 border-2 border-green-100 rounded-2xl flex justify-between items-center">
+              {/* Fees */}
+              <div className="p-5 bg-green-50 border rounded-2xl flex justify-between items-center">
                 <div>
-                  <p className="text-xs text-green-700 font-bold uppercase tracking-wide">
-                    Admission Fees Due
+                  <p className="text-xs text-green-700 font-bold uppercase">
+                    Admission Fees
                   </p>
-                  <p className="text-3xl font-black text-green-600 mt-1">
-                    ₹{data.fees}
+                  <p className="text-3xl font-bold text-green-600">
+                    ₹{data.fees || 0}
                   </p>
                 </div>
-                <button className="px-5 py-2 bg-green-600 text-white text-sm font-bold rounded-xl hover:bg-green-700 transition shadow-md shadow-green-100">
+
+                <button className="px-5 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700">
                   Pay Now
                 </button>
               </div>
-
-              <p className="text-center text-[11px] text-gray-400 italic">
-                Please keep your Application ID safe for future login and
-                identity verification.
-              </p>
             </div>
           )}
 
-          {/* ❌ REJECTED MESSAGE */}
+          {/* REJECTED */}
           {data.status === "rejected" && (
             <p className="mt-6 text-red-500 font-semibold">
               Sorry, your application has been rejected.
             </p>
           )}
 
-          {/* ⏳ PENDING */}
+          {/* PENDING */}
           {data.status === "pending" && (
             <p className="mt-6 text-yellow-600 font-semibold">
               Your application is under review.
