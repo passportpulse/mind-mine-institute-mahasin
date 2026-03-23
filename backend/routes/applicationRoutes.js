@@ -22,7 +22,21 @@ const uploadFields = upload.fields([
 ]);
 
 // ✅ Routes
-router.post("/", uploadFields, createApplication);
+
+router.post(
+  "/",
+  (req, res, next) => {
+    uploadFields(req, res, function (err) {
+      if (err) {
+        console.error("MULTER ERROR:", err);
+        return res.status(400).json({ message: err.message });
+      }
+      next();
+    });
+  },
+  createApplication,
+);
+
 router.get("/status/:trackingId", getApplicationByTrackingId);
 router.get("/", adminAuth, getApplications);
 router.get("/:id", adminAuth, getApplicationById);

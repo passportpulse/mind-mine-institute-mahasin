@@ -1,8 +1,11 @@
-const fs = require("fs");
+const path = require("path");
 
-if (!fs.existsSync("uploads")) {
-  fs.mkdirSync("uploads");
+const uploadDir = path.join(__dirname, "uploads");
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
+
 
 const express = require("express");
 const mongoose = require("mongoose");
@@ -28,7 +31,16 @@ app.get("/", (req, res) => {
 
 // ✅ ROUTES
 app.use("/api/applications", require("./routes/applicationRoutes"));
-app.use("/api/admin", require("./routes/adminRoutes")); // 🔥 ADD THIS
+app.use("/api/admin", require("./routes/adminRoutes")); 
+
+app.use((err, req, res, next) => {
+  console.error("GLOBAL ERROR:", err);
+
+  res.status(500).json({
+    message: err.message || "Internal Server Error",
+  });
+});
+
 
 // ✅ DB Connection
 mongoose
