@@ -11,7 +11,7 @@ const applicationSchema = new mongoose.Schema(
       enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
-     fees: {
+    fees: {
       type: Number,
     },
     applicationId: {
@@ -49,6 +49,14 @@ const applicationSchema = new mongoose.Schema(
     guardian: {
       name: String,
       phone: String,
+    },
+    documents: {
+      aadhaarFile: String,
+      photo: String,
+      tenthMarksheet: String,
+      twelfthMarksheet: String,
+      graduation: String,
+      postGraduation: String,
     },
   },
   { timestamps: true },

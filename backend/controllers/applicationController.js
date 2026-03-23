@@ -8,9 +8,16 @@ const generateTrackingId = () => {
 };
 exports.createApplication = async (req, res) => {
   try {
-    const { campusInfo, studentDetails } = req.body;
+    // ✅ Parse JSON fields (VERY IMPORTANT)
+    const campusInfo = JSON.parse(req.body.campusInfo || "{}");
+    const studentDetails = JSON.parse(req.body.studentDetails || "{}");
+    const parentDetails = JSON.parse(req.body.parentDetails || "{}");
+    const guardian = JSON.parse(req.body.guardian || "{}");
 
-    // ✅ Validation (same as yours)
+    // ✅ Files
+    const files = req.files || {};
+
+    // ✅ Validation (same as before)
     if (!campusInfo?.course) {
       return res.status(400).json({ message: "Course is required" });
     }
@@ -36,16 +43,30 @@ exports.createApplication = async (req, res) => {
       return res.status(400).json({ message: "Invalid contact number" });
     }
 
+    // ✅ Extract uploaded file names
+    const documents = {
+      aadhaarFile: files.aadhaarFile?.[0]?.filename || "",
+      photo: files.photo?.[0]?.filename || "",
+      tenthMarksheet: files.tenthMarksheet?.[0]?.filename || "",
+      twelfthMarksheet: files.twelfthMarksheet?.[0]?.filename || "",
+      graduation: files.graduation?.[0]?.filename || "",
+      postGraduation: files.postGraduation?.[0]?.filename || "",
+    };
+
     // 🔥 Generate Tracking ID
     const trackingId = generateTrackingId();
 
-    // ✅ Save with trackingId
+    // ✅ Save to DB
     const application = await Application.create({
-      ...req.body,
+      campusInfo,
+      studentDetails,
+      parentDetails,
+      guardian,
+      documents,
       trackingId,
     });
 
-    // ✅ Send trackingId to frontend
+    // ✅ Response
     res.status(201).json({
       success: true,
       message: "Application submitted successfully",
@@ -59,6 +80,7 @@ exports.createApplication = async (req, res) => {
     });
   }
 };
+
 exports.updateApplication = async (req, res) => {
   try {
     const { status } = req.body;
