@@ -161,14 +161,25 @@ const OnlineApplication = () => {
           formPayload.append(key, formData.documents[key]);
         }
       });
+      console.log("Submitting form...");
 
       const res = await fetch(`${API_BASE_URL}/applications`, {
         method: "POST",
-        body: formPayload, // ❌ no JSON headers
+        body: formPayload,
       });
+      console.log("Response status:", res.status);
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      let data;
+
+      try {
+        data = await res.json();
+      } catch (err) {
+        throw new Error("Server error (not JSON response)");
+      }
+
+      if (!res.ok) {
+        throw new Error(data.message || "Something went wrong");
+      }
 
       setTrackingId(data.trackingId);
       setIsSubmitted(true);

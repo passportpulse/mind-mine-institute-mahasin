@@ -237,6 +237,128 @@ const Applications = () => {
                       </p>
                     )}
                   </div>
+                  <div>
+                    <h4 className="text-indigo-600 font-bold text-[10px] uppercase mb-3 tracking-wider">
+                      Documents
+                    </h4>
+
+                    <div className="space--2 text-xs">
+                      {app.documents?.photo && (
+                        <div>
+                          <p className="font-semibold">Photo:</p>
+
+                          <img
+                            src={`${API_BASE_URL.replace("/api", "")}/uploads/${app.documents.photo}`}
+                            alt="photo"
+                            className="w-24 h-24 object-cover rounded-lg border"
+                          />
+                          <a
+                            href={`${API_BASE_URL.replace("/api", "")}/uploads/${app.documents.photo}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-600 underline"
+                          >
+                            View Photo
+                          </a>
+                        </div>
+                      )}
+
+                      {app.documents?.aadhaarFile && (
+                        <div>
+                          <p className="font-semibold">Aadhaar:</p>
+                          <img
+                            src={`${API_BASE_URL.replace("/api", "")}/uploads/${app.documents.aadhaarFile}`}
+                            alt="photo"
+                            className="w-24 h-24 object-cover rounded-lg border"
+                          />
+                          <a
+                            href={`${API_BASE_URL.replace("/api", "")}/uploads/${app.documents.aadhaarFile}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-600 underline"
+                          >
+                            View Aadhaar
+                          </a>
+                        </div>
+                      )}
+
+                      {app.documents?.tenthMarksheet && (
+                        <div>
+                          <p className="font-semibold">10th:</p>
+                          <img
+                            src={`${API_BASE_URL.replace("/api", "")}/uploads/${app.documents.tenthMarksheet}`}
+                            alt="photo"
+                            className="w-24 h-24 object-cover rounded-lg border"
+                          />
+                          <a
+                            href={`${API_BASE_URL.replace("/api", "")}/uploads/${app.documents.tenthMarksheet}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-600 underline"
+                          >
+                            View 10th Marksheet
+                          </a>
+                        </div>
+                      )}
+
+                      {app.documents?.twelfthMarksheet && (
+                        <div>
+                          <p className="font-semibold">12th:</p>
+                          <img
+                            src={`${API_BASE_URL.replace("/api", "")}/uploads/${app.documents.tenthMarksheet}`}
+                            alt="photo"
+                            className="w-24 h-24 object-cover rounded-lg border"
+                          />
+                          <a
+                            href={`${API_BASE_URL.replace("/api", "")}/uploads/${app.documents.twelfthMarksheet}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-600 underline"
+                          >
+                            View 12th Marksheet
+                          </a>
+                        </div>
+                      )}
+
+                      {app.documents?.graduation && (
+                        <div>
+                          <p className="font-semibold">Graduation:</p>
+                          <img
+                            src={`${API_BASE_URL.replace("/api", "")}/uploads/${app.documents.graduation}`}
+                            alt="photo"
+                            className="w-24 h-24 object-cover rounded-lg border"
+                          />
+                          <a
+                            href={`${API_BASE_URL.replace("/api", "")}/uploads/${app.documents.graduation}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-600 underline"
+                          >
+                            View Graduation
+                          </a>
+                        </div>
+                      )}
+
+                      {app.documents?.postGraduation && (
+                        <div>
+                          <p className="font-semibold">Post Graduation:</p>
+                          <img
+                            src={`${API_BASE_URL.replace("/api", "")}/uploads/${app.documents.postGraduation}`}
+                            alt="photo"
+                            className="w-24 h-24 object-cover rounded-lg border"
+                          />
+                          <a
+                            href={`${API_BASE_URL.replace("/api", "")}/uploads/${app.documents.postGraduation}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-600 underline"
+                          >
+                            View Post Graduation
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
 
