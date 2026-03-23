@@ -27,6 +27,14 @@ const OnlineApplication = () => {
       motherPhone: "",
     },
     guardian: { name: "", phone: "" },
+    documents: {
+      aadhaarFile: null,
+      photo: null,
+      tenthMarksheet: null,
+      twelfthMarksheet: null,
+      graduation: null,
+      postGraduation: null,
+    },
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -47,6 +55,23 @@ const OnlineApplication = () => {
     setFormData((prev) => ({
       ...prev,
       [section]: { ...prev[section], [field]: value },
+    }));
+  };
+  const handleFileChange = (field, file) => {
+    if (!file) return;
+
+    // Max 2MB
+    if (file.size > 2 * 1024 * 1024) {
+      alert("File size must be less than 2MB");
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      documents: {
+        ...prev.documents,
+        [field]: file,
+      },
     }));
   };
 
@@ -93,6 +118,17 @@ const OnlineApplication = () => {
       formData.parentDetails.motherPhone.length !== 10
     )
       newErrors.motherPhone = "Must be 10 digits";
+    // Documents Validation
+    if (!formData.documents.aadhaarFile)
+      newErrors.aadhaarFile = "Aadhaar required";
+
+    if (!formData.documents.photo) newErrors.photo = "Photo required";
+
+    if (!formData.documents.tenthMarksheet)
+      newErrors.tenthMarksheet = "10th required";
+
+    if (!formData.documents.twelfthMarksheet)
+      newErrors.twelfthMarksheet = "12th required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -100,27 +136,45 @@ const OnlineApplication = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
+    if (!validate()) return;
 
     setIsSubmitting(true);
+
     try {
+      const formPayload = new FormData();
+
+      // Append normal fields
+      formPayload.append("campusInfo", JSON.stringify(formData.campusInfo));
+      formPayload.append(
+        "studentDetails",
+        JSON.stringify(formData.studentDetails),
+      );
+      formPayload.append(
+        "parentDetails",
+        JSON.stringify(formData.parentDetails),
+      );
+      formPayload.append("guardian", JSON.stringify(formData.guardian));
+
+      // Append files
+      Object.keys(formData.documents).forEach((key) => {
+        if (formData.documents[key]) {
+          formPayload.append(key, formData.documents[key]);
+        }
+      });
+
       const res = await fetch(`${API_BASE_URL}/applications`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: formPayload, // ❌ no JSON headers
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Submission failed");
+      if (!res.ok) throw new Error(data.message);
 
       setTrackingId(data.trackingId);
       setIsSubmitted(true);
       setFormData(initialFormState);
     } catch (err) {
-      alert(err.message || "Something went wrong.");
+      alert(err.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -517,6 +571,101 @@ const OnlineApplication = () => {
                   />
                 </div>
               </div>
+            </div>
+          </section>
+          {/* SECTION 4: DOCUMENT UPLOAD */}
+          <section>
+            <div className="flex items-center mb-8 pb-2 border-b">
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-600 text-white text-sm font-bold mr-3">
+                4
+              </span>
+              <h3 className="text-xl font-bold text-gray-900">
+                Document Upload
+              </h3>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {[
+                { label: "Aadhaar Card", name: "aadhaarFile", required: true },
+                { label: "Passport Size Photo", name: "photo", required: true },
+                {
+                  label: "10th Marksheet",
+                  name: "tenthMarksheet",
+                  required: true,
+                },
+                {
+                  label: "12th Marksheet",
+                  name: "twelfthMarksheet",
+                  required: true,
+                },
+                { label: "Graduation", name: "graduation", required: false },
+                {
+                  label: "Post Graduation",
+                  name: "postGraduation",
+                  required: false,
+                },
+              ].map((doc) => (
+                <div key={doc.name} className="space-y-2">
+                  <Label text={doc.label} required={doc.required} />
+
+                  <label className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-2xl cursor-pointer transition-all bg-gray-50 hover:bg-indigo-50 hover:border-indigo-400">
+                    {/* Icon */}
+                    <div className="w-12 h-12 flex items-center justify-center rounded-full bg-indigo-100 mb-2">
+                      <svg
+                        className="w-6 h-6 text-indigo-600"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 5v14M5 12h14"
+                        />
+                      </svg>
+                    </div>
+
+                    {/* Text */}
+                    <p className="text-sm text-gray-600 text-center">
+                      <span className="font-semibold text-indigo-600">
+                        Click to upload
+                      </span>{" "}
+                      or drag & drop
+                    </p>
+
+                    <p className="text-xs text-gray-400 mt-1">
+                      PNG, JPG, PDF (Max 2MB)
+                    </p>
+
+                    {/* Hidden Input */}
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept={
+                        doc.name === "photo"
+                          ? "image/*"
+                          : "image/*,application/pdf"
+                      }
+                      onChange={(e) =>
+                        handleFileChange(doc.name, e.target.files[0])
+                      }
+                    />
+                  </label>
+
+                  {/* File Name Preview */}
+                  {formData.documents?.[doc.name] && (
+                    <p className="text-xs text-green-600 font-medium mt-1 truncate">
+                      ✔ {formData.documents[doc.name].name}
+                    </p>
+                  )}
+
+                  {/* ❗ Error Message */}
+                  {errors[doc.name] && (
+                    <p className="text-xs text-red-500">{errors[doc.name]}</p>
+                  )}
+                </div>
+              ))}
             </div>
           </section>
 
