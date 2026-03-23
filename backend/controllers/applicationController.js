@@ -6,18 +6,47 @@ const generateTrackingId = () => {
   // Format: MMI-629387-2846 (Similar to your requested format)
   return `MMI-${Math.floor(100000 + Math.random() * 899999)}-${random}${timestamp.slice(-1)}`;
 };
+
 exports.createApplication = async (req, res) => {
   try {
-    // ✅ Parse JSON fields (VERY IMPORTANT)
-    const campusInfo = JSON.parse(req.body.campusInfo || "{}");
-    const studentDetails = JSON.parse(req.body.studentDetails || "{}");
-    const parentDetails = JSON.parse(req.body.parentDetails || "{}");
-    const guardian = JSON.parse(req.body.guardian || "{}");
+    // 🔍 DEBUG LOGS (VERY IMPORTANT)
+    console.log("BODY:", req.body);
+    console.log("FILES:", req.files);
 
-    // ✅ Files
+    // ✅ SAFE JSON PARSING
+    let campusInfo = {};
+    let studentDetails = {};
+    let parentDetails = {};
+    let guardian = {};
+
+    try {
+      campusInfo = JSON.parse(req.body.campusInfo || "{}");
+    } catch {
+      return res.status(400).json({ message: "Invalid campusInfo format" });
+    }
+
+    try {
+      studentDetails = JSON.parse(req.body.studentDetails || "{}");
+    } catch {
+      return res.status(400).json({ message: "Invalid studentDetails format" });
+    }
+
+    try {
+      parentDetails = JSON.parse(req.body.parentDetails || "{}");
+    } catch {
+      parentDetails = {};
+    }
+
+    try {
+      guardian = JSON.parse(req.body.guardian || "{}");
+    } catch {
+      guardian = {};
+    }
+
+    // ✅ FILES
     const files = req.files || {};
 
-    // ✅ Validation (same as before)
+    // ✅ VALIDATION
     if (!campusInfo?.course) {
       return res.status(400).json({ message: "Course is required" });
     }
@@ -43,20 +72,20 @@ exports.createApplication = async (req, res) => {
       return res.status(400).json({ message: "Invalid contact number" });
     }
 
-    // ✅ Extract uploaded file names
+    // ✅ FILE NAMES (SAFE)
     const documents = {
-      aadhaarFile: files.aadhaarFile?.[0]?.filename || "",
-      photo: files.photo?.[0]?.filename || "",
-      tenthMarksheet: files.tenthMarksheet?.[0]?.filename || "",
-      twelfthMarksheet: files.twelfthMarksheet?.[0]?.filename || "",
-      graduation: files.graduation?.[0]?.filename || "",
-      postGraduation: files.postGraduation?.[0]?.filename || "",
+      aadhaarFile: files?.aadhaarFile?.[0]?.filename || "",
+      photo: files?.photo?.[0]?.filename || "",
+      tenthMarksheet: files?.tenthMarksheet?.[0]?.filename || "",
+      twelfthMarksheet: files?.twelfthMarksheet?.[0]?.filename || "",
+      graduation: files?.graduation?.[0]?.filename || "",
+      postGraduation: files?.postGraduation?.[0]?.filename || "",
     };
 
-    // 🔥 Generate Tracking ID
+    // 🔥 TRACKING ID
     const trackingId = generateTrackingId();
 
-    // ✅ Save to DB
+    // ✅ SAVE
     const application = await Application.create({
       campusInfo,
       studentDetails,
@@ -66,15 +95,17 @@ exports.createApplication = async (req, res) => {
       trackingId,
     });
 
-    // ✅ Response
-    res.status(201).json({
+    // ✅ SUCCESS RESPONSE
+    return res.status(201).json({
       success: true,
       message: "Application submitted successfully",
       trackingId: application.trackingId,
       data: application,
     });
   } catch (error) {
-    res.status(500).json({
+    console.error("CREATE APPLICATION ERROR:", error);
+
+    return res.status(500).json({
       message: "Server Error",
       error: error.message,
     });

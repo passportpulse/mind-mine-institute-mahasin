@@ -1,3 +1,9 @@
+const fs = require("fs");
+
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
