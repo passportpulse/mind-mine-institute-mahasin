@@ -526,9 +526,9 @@ const OnlineApplication = () => {
                         date.toISOString().split("T")[0], // store in YYYY-MM-DD
                       )
                     }
-                    dateFormat="dd-MM-yy"
+                    dateFormat="dd-MM-yyyy"
                     maxDate={new Date()}
-                    placeholderText="DD-MM-YY"
+                    placeholderText="DD-MM-YYYY"
                     className={`w-full px-4 py-3 rounded-xl border ${
                       errors.dob
                         ? "border-red-500"

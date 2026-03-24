@@ -256,7 +256,7 @@ const Applications = () => {
                                   app.studentDetails.dob
                                     .split("T")[0]
                                     .split("-");
-                                return `${day}-${month}-${year.slice(-2)}`;
+                                return `${day}-${month}-${year}`; // ✅ full year
                               })()
                             : "N/A"}
                         </p>
