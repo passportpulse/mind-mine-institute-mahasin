@@ -224,6 +224,10 @@ const Navbar = () => {
               </div>
             )}
           </div>
+          {/* Admin Zone */}
+          <NavLink to="/admin" className={linkClass}>
+            Admin Panel
+          </NavLink>
 
           {/* STUDENT ZONE */}
           <div className="relative group">
