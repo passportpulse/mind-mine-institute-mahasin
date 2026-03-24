@@ -143,72 +143,78 @@ const OnlineApplication = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // 1. Run the validation we just updated
-    const isValid = validate();
+  // 1. Run your validation logic
+  const isValid = validate(); 
 
-    if (isValid) {
-      setIsSubmitting(true);
+  if (isValid) {
+    setIsSubmitting(true);
+    console.log("--- 📝 FORM SUBMISSION START ---");
 
-      // 2. Create a new FormData object for the API/Backend
-      const dataToSend = new FormData();
+    // 2. Prepare FormData for multipart/form-data submission
+    const dataToSend = new FormData();
 
-      // Log Header for clarity in Console
-      console.log("--- 📝 FORM SUBMISSION START ---");
+    // Append Stringified Objects (Matches your Backend JSON.parse logic)
+    dataToSend.append("campusInfo", JSON.stringify(formData.campusInfo));
+    dataToSend.append("studentDetails", JSON.stringify(formData.studentDetails));
+    dataToSend.append("parentDetails", JSON.stringify(formData.parentDetails));
+    
+    // Guardian is optional in schema, but we send it if it exists
+    if (formData.guardian) {
+      dataToSend.append("guardian", JSON.stringify(formData.guardian));
+    }
 
-      // Append Nested Objects (Campus & Student)
-      // We stringify nested objects so the backend can parse them easily
-      dataToSend.append("campusInfo", JSON.stringify(formData.campusInfo));
-      dataToSend.append(
-        "studentDetails",
-        JSON.stringify(formData.studentDetails),
-      );
-      dataToSend.append(
-        "parentDetails",
-        JSON.stringify(formData.parentDetails),
-      );
+    // Append Files individually from the documents object
+    Object.keys(formData.documents).forEach((key) => {
+      const file = formData.documents[key];
+      if (file) {
+        dataToSend.append(key, file);
+        console.log(`📁 Attached: ${key} (${Math.round(file.size / 1024)} KB)`);
+      }
+    });
 
-      // Append Files individually
-      Object.keys(formData.documents).forEach((key) => {
-        const file = formData.documents[key];
-        if (file) {
-          dataToSend.append(key, file);
-          console.log(
-            `📁 File Attached: ${key} ->`,
-            file.name,
-            `(${Math.round(file.size / 1024)} KB)`,
-          );
-        }
+    try {
+      // 3. Actual API Call
+      const res = await fetch(`${API_BASE_URL}/applications`, {
+        method: "POST",
+        // IMPORTANT: Do NOT set Content-Type header manually for FormData. 
+        // The browser needs to set the "boundary" itself.
+        body: dataToSend,
       });
 
-      // 3. LOG EVERYTHING SENDING
-      // Since FormData is an opaque object, we use this trick to see its contents:
-      console.log("--- 📋 FIELD DATA ---");
-      for (let [key, value] of dataToSend.entries()) {
-        console.log(`${key}:`, value);
+      // 4. Handle Response
+      const responseData = await res.json();
+
+      if (!res.ok) {
+        // This catches 400 (Validation) or 500 (Server) errors from your controller
+        throw new Error(responseData.message || "Submission failed on server.");
       }
 
-      try {
-        // Example API Call (commented out for now)
-        // const response = await axios.post('/api/enroll', dataToSend);
+      // 5. Success State
+      console.log("✅ Database Saved Successfully:", responseData);
+      
+      // Update local state to show Success UI
+      setTrackingId(responseData.trackingId);
+      setIsSubmitted(true);
+      
+      // Optional: Reset form fields if not redirecting
+      // setFormData(initialState); 
 
-        // Simulate network delay for your "Submitting..." button state
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        console.log("✅ Submission Successful!");
-        alert("Application Submitted Successfully!");
-      } catch (error) {
-        console.error("❌ Submission Error:", error);
-      } finally {
-        setIsSubmitting(false);
-        console.log("--- 🔚 FORM SUBMISSION END ---");
-      }
-    } else {
-      console.log("⚠️ Validation Failed. Check red fields.");
+    } catch (error) {
+      console.error("❌ Submission Error:", error.message);
+      alert(`Submission Error: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+      console.log("--- 🔚 FORM SUBMISSION END ---");
     }
-  };
+  } else {
+    // Scroll to top or alert user to check errors
+    alert("Please correct the errors in the form before submitting.");
+    console.log("⚠️ Validation Failed.");
+  }
+};
 
   const Label = ({ text, required }) => (
     <label className="text-sm font-semibold text-gray-700 ml-1">
