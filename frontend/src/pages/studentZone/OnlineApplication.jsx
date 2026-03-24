@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { API_BASE_URL } from "../../config/api";
 import coursesData from "../../data/coursesData";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const OnlineApplication = () => {
   const initialFormState = {
@@ -143,78 +145,87 @@ const OnlineApplication = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  // 1. Run your validation logic
-  const isValid = validate(); 
+    // 1. Run your validation logic
+    const isValid = validate();
 
-  if (isValid) {
-    setIsSubmitting(true);
-    console.log("--- 📝 FORM SUBMISSION START ---");
+    if (isValid) {
+      setIsSubmitting(true);
+      console.log("--- 📝 FORM SUBMISSION START ---");
 
-    // 2. Prepare FormData for multipart/form-data submission
-    const dataToSend = new FormData();
+      // 2. Prepare FormData for multipart/form-data submission
+      const dataToSend = new FormData();
 
-    // Append Stringified Objects (Matches your Backend JSON.parse logic)
-    dataToSend.append("campusInfo", JSON.stringify(formData.campusInfo));
-    dataToSend.append("studentDetails", JSON.stringify(formData.studentDetails));
-    dataToSend.append("parentDetails", JSON.stringify(formData.parentDetails));
-    
-    // Guardian is optional in schema, but we send it if it exists
-    if (formData.guardian) {
-      dataToSend.append("guardian", JSON.stringify(formData.guardian));
-    }
+      // Append Stringified Objects (Matches your Backend JSON.parse logic)
+      dataToSend.append("campusInfo", JSON.stringify(formData.campusInfo));
+      dataToSend.append(
+        "studentDetails",
+        JSON.stringify(formData.studentDetails),
+      );
+      dataToSend.append(
+        "parentDetails",
+        JSON.stringify(formData.parentDetails),
+      );
 
-    // Append Files individually from the documents object
-    Object.keys(formData.documents).forEach((key) => {
-      const file = formData.documents[key];
-      if (file) {
-        dataToSend.append(key, file);
-        console.log(`📁 Attached: ${key} (${Math.round(file.size / 1024)} KB)`);
+      // Guardian is optional in schema, but we send it if it exists
+      if (formData.guardian) {
+        dataToSend.append("guardian", JSON.stringify(formData.guardian));
       }
-    });
 
-    try {
-      // 3. Actual API Call
-      const res = await fetch(`${API_BASE_URL}/applications`, {
-        method: "POST",
-        // IMPORTANT: Do NOT set Content-Type header manually for FormData. 
-        // The browser needs to set the "boundary" itself.
-        body: dataToSend,
+      // Append Files individually from the documents object
+      Object.keys(formData.documents).forEach((key) => {
+        const file = formData.documents[key];
+        if (file) {
+          dataToSend.append(key, file);
+          console.log(
+            `📁 Attached: ${key} (${Math.round(file.size / 1024)} KB)`,
+          );
+        }
       });
 
-      // 4. Handle Response
-      const responseData = await res.json();
+      try {
+        // 3. Actual API Call
+        const res = await fetch(`${API_BASE_URL}/applications`, {
+          method: "POST",
+          // IMPORTANT: Do NOT set Content-Type header manually for FormData.
+          // The browser needs to set the "boundary" itself.
+          body: dataToSend,
+        });
 
-      if (!res.ok) {
-        // This catches 400 (Validation) or 500 (Server) errors from your controller
-        throw new Error(responseData.message || "Submission failed on server.");
+        // 4. Handle Response
+        const responseData = await res.json();
+
+        if (!res.ok) {
+          // This catches 400 (Validation) or 500 (Server) errors from your controller
+          throw new Error(
+            responseData.message || "Submission failed on server.",
+          );
+        }
+
+        // 5. Success State
+        console.log("✅ Database Saved Successfully:", responseData);
+
+        // Update local state to show Success UI
+        setTrackingId(responseData.trackingId);
+        setIsSubmitted(true);
+
+        // Optional: Reset form fields if not redirecting
+        // setFormData(initialState);
+      } catch (error) {
+        console.error("❌ Submission Error:", error.message);
+        alert(`Submission Error: ${error.message}`);
+      } finally {
+        setIsSubmitting(false);
+        console.log("--- 🔚 FORM SUBMISSION END ---");
       }
-
-      // 5. Success State
-      console.log("✅ Database Saved Successfully:", responseData);
-      
-      // Update local state to show Success UI
-      setTrackingId(responseData.trackingId);
-      setIsSubmitted(true);
-      
-      // Optional: Reset form fields if not redirecting
-      // setFormData(initialState); 
-
-    } catch (error) {
-      console.error("❌ Submission Error:", error.message);
-      alert(`Submission Error: ${error.message}`);
-    } finally {
-      setIsSubmitting(false);
-      console.log("--- 🔚 FORM SUBMISSION END ---");
+    } else {
+      // Scroll to top or alert user to check errors
+      alert("Please correct the errors in the form before submitting.");
+      console.log("⚠️ Validation Failed.");
     }
-  } else {
-    // Scroll to top or alert user to check errors
-    alert("Please correct the errors in the form before submitting.");
-    console.log("⚠️ Validation Failed.");
-  }
-};
+  };
 
   const Label = ({ text, required }) => (
     <label className="text-sm font-semibold text-gray-700 ml-1">
@@ -502,14 +513,27 @@ const handleSubmit = async (e) => {
               <div className="grid gap-6 md:grid-cols-3">
                 <div className="space-y-1">
                   <Label text="Date of Birth" required />
-                  <input
-                    type="date"
-                    max={today}
-                    className={`w-full px-4 py-3 rounded-xl border transition-all ${errors.dob ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
-                    value={formData.studentDetails.dob}
-                    onChange={(e) =>
-                      handleChange("studentDetails", "dob", e.target.value)
+                  <DatePicker
+                    selected={
+                      formData.studentDetails.dob
+                        ? new Date(formData.studentDetails.dob)
+                        : null
                     }
+                    onChange={(date) =>
+                      handleChange(
+                        "studentDetails",
+                        "dob",
+                        date.toISOString().split("T")[0], // store in YYYY-MM-DD
+                      )
+                    }
+                    dateFormat="dd-MM-yy"
+                    maxDate={new Date()}
+                    placeholderText="DD-MM-YY"
+                    className={`w-full px-4 py-3 rounded-xl border ${
+                      errors.dob
+                        ? "border-red-500"
+                        : "border-gray-300 focus:ring-2 focus:ring-indigo-500"
+                    }`}
                   />
                 </div>
                 <div className="space-y-1">
@@ -801,7 +825,11 @@ const handleSubmit = async (e) => {
                   name: "twelfthMarksheet",
                   required: true,
                 },
-                { label: "Graduation (If Any)", name: "graduation", required: false },
+                {
+                  label: "Graduation (If Any)",
+                  name: "graduation",
+                  required: false,
+                },
                 {
                   label: "Post Graduation (If Any)",
                   name: "postGraduation",

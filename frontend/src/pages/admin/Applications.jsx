@@ -98,56 +98,50 @@ const Applications = () => {
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto bg-slate-50 min-h-screen">
-<div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-  
-  {/* LEFT SIDE */}
-  <div className="flex flex-col gap-2">
-    <h2 className="text-3xl font-black text-slate-800">
-      Admin Panel
-    </h2>
+      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        {/* LEFT SIDE */}
+        <div className="flex flex-col gap-2">
+          <h2 className="text-3xl font-black text-slate-800">Admin Panel</h2>
 
-    <p className="text-slate-500 text-sm">
-      Review student enrollment applications
-    </p>
+          <p className="text-slate-500 text-sm">
+            Review student enrollment applications
+          </p>
 
-    {/* BRANCH INFO */}
-    <div className="mt-2">
-      <h3 className="text-lg font-bold text-slate-700 leading-tight">
-        {branch ? `${branch} Applications` : "All Applications"}
-      </h3>
+          {/* BRANCH INFO */}
+          <div className="mt-2">
+            <h3 className="text-lg font-bold text-slate-700 leading-tight">
+              {branch ? `${branch} Applications` : "All Applications"}
+            </h3>
 
-      <p className="text-xs text-gray-500">
-        {branch
-          ? "Showing applications for selected branch"
-          : "Showing all applications"}
-      </p>
-    </div>
-  </div>
+            <p className="text-xs text-gray-500">
+              {branch
+                ? "Showing applications for selected branch"
+                : "Showing all applications"}
+            </p>
+          </div>
+        </div>
 
-  {/* RIGHT SIDE */}
-  <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto">
-    
-    {branch && (
-      <button
-        onClick={() => navigate("/admin/applications")}
-        className="px-4 py-2 text-xs font-bold bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition whitespace-nowrap"
-      >
-        Clear Filter
-      </button>
-    )}
+        {/* RIGHT SIDE */}
+        <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto">
+          {branch && (
+            <button
+              onClick={() => navigate("/admin/applications")}
+              className="px-4 py-2 text-xs font-bold bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition whitespace-nowrap"
+            >
+              Clear Filter
+            </button>
+          )}
 
-    <div className="text-right">
-      <span className="block text-3xl font-extrabold text-indigo-600 leading-none">
-        {filteredApps.length}
-      </span>
-      <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
-        Total Applications
-      </p>
-    </div>
-
-  </div>
-</div>
-
+          <div className="text-right">
+            <span className="block text-3xl font-extrabold text-indigo-600 leading-none">
+              {filteredApps.length}
+            </span>
+            <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
+              Total Applications
+            </p>
+          </div>
+        </div>
+      </div>
 
       {loading ? (
         <div className="flex justify-center p-20 animate-pulse text-slate-400 font-bold">
