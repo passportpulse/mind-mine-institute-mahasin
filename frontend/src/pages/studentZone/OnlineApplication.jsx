@@ -1,22 +1,23 @@
 import { useState } from "react";
 import { API_BASE_URL } from "../../config/api";
+import coursesData from "../../data/coursesData";
 
 const OnlineApplication = () => {
   const initialFormState = {
-    campusInfo: { campus: "", campusLocation: "", course: "" }, // campusLocation is used here
+    campusInfo: {
+      campus: "",
+      course: "",
+      duration: "",
+    },
     studentDetails: {
       fullName: "",
       dob: "",
       gender: "",
+      contact: "",
       caste: "",
       aadhaar: "",
-      nationality: "Indian",
-      address: "",
-      city: "",
-      state: "West Bengal",
-      pinCode: "",
-      contact: "",
       email: "",
+      address: "",
     },
     parentDetails: {
       fatherName: "",
@@ -26,7 +27,6 @@ const OnlineApplication = () => {
       motherOccupation: "",
       motherPhone: "",
     },
-    guardian: { name: "", phone: "" },
     documents: {
       aadhaarFile: null,
       photo: null,
@@ -80,114 +80,133 @@ const OnlineApplication = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const aadhaarRegex = /^\d{12}$/;
 
-    // Campus Validations
-    if (!formData.campusInfo.campus.trim()) newErrors.campus = "Required";
-    if (!formData.campusInfo.campusLocation.trim())
-      newErrors.campusLocation = "Required"; // Added Location Validation
-    if (!formData.campusInfo.course.trim()) newErrors.course = "Required";
+    // SECTION 1: Campus & Course Info
+    if (!formData.campusInfo.campus) newErrors.campus = "Required";
+    if (!formData.campusInfo.course) newErrors.course = "Required";
+    if (!formData.campusInfo.duration) newErrors.duration = "Required";
 
-    // Student Validations
+    // SECTION 2: Student Details
     if (!formData.studentDetails.fullName.trim())
       newErrors.fullName = "Required";
     if (!formData.studentDetails.dob) newErrors.dob = "Required";
     if (!formData.studentDetails.gender) newErrors.gender = "Required";
-    if (!formData.studentDetails.caste.trim()) newErrors.caste = "Required";
-    if (!aadhaarRegex.test(formData.studentDetails.aadhaar))
-      newErrors.aadhaar = "Must be 12 digits";
-    if (!formData.studentDetails.address.trim()) newErrors.address = "Required";
     if (
       !formData.studentDetails.contact ||
       formData.studentDetails.contact.length !== 10
-    )
+    ) {
       newErrors.contact = "Must be 10 digits";
-    if (!emailRegex.test(formData.studentDetails.email))
+    }
+    if (!formData.studentDetails.caste) newErrors.caste = "Required";
+    if (!aadhaarRegex.test(formData.studentDetails.aadhaar)) {
+      newErrors.aadhaar = "Must be 12 digits";
+    }
+    if (!emailRegex.test(formData.studentDetails.email)) {
       newErrors.email = "Invalid email";
+    }
+    if (!formData.studentDetails.address.trim()) newErrors.address = "Required";
 
-    // Parent Validations
+    // SECTION 3: Parent Details
     if (!formData.parentDetails.fatherName.trim())
       newErrors.fatherName = "Required";
     if (
       !formData.parentDetails.fatherPhone ||
       formData.parentDetails.fatherPhone.length !== 10
-    )
+    ) {
       newErrors.fatherPhone = "Must be 10 digits";
+    }
     if (!formData.parentDetails.motherName.trim())
       newErrors.motherName = "Required";
     if (
       !formData.parentDetails.motherPhone ||
       formData.parentDetails.motherPhone.length !== 10
-    )
+    ) {
       newErrors.motherPhone = "Must be 10 digits";
-    // Documents Validation
-    if (!formData.documents.aadhaarFile)
-      newErrors.aadhaarFile = "Aadhaar required";
+    }
 
-    if (!formData.documents.photo) newErrors.photo = "Photo required";
-
+    // SECTION 4: Document Upload (Matching your 'required: true' list)
+    if (!formData.documents.aadhaarFile) newErrors.aadhaarFile = "Required";
+    if (!formData.documents.photo) newErrors.photo = "Required";
     if (!formData.documents.tenthMarksheet)
-      newErrors.tenthMarksheet = "10th required";
-
+      newErrors.tenthMarksheet = "Required";
     if (!formData.documents.twelfthMarksheet)
-      newErrors.twelfthMarksheet = "12th required";
+      newErrors.twelfthMarksheet = "Required";
+
+    // Note: Graduation and Post Graduation are optional in your form, so no validation here.
 
     setErrors(newErrors);
+
+    // Optional: Auto-scroll to the first error for better UX
+    if (Object.keys(newErrors).length > 0) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
 
-    setIsSubmitting(true);
+    // 1. Run the validation we just updated
+    const isValid = validate();
 
-    try {
-      const formPayload = new FormData();
+    if (isValid) {
+      setIsSubmitting(true);
 
-      // Append normal fields
-      formPayload.append("campusInfo", JSON.stringify(formData.campusInfo));
-      formPayload.append(
+      // 2. Create a new FormData object for the API/Backend
+      const dataToSend = new FormData();
+
+      // Log Header for clarity in Console
+      console.log("--- 📝 FORM SUBMISSION START ---");
+
+      // Append Nested Objects (Campus & Student)
+      // We stringify nested objects so the backend can parse them easily
+      dataToSend.append("campusInfo", JSON.stringify(formData.campusInfo));
+      dataToSend.append(
         "studentDetails",
         JSON.stringify(formData.studentDetails),
       );
-      formPayload.append(
+      dataToSend.append(
         "parentDetails",
         JSON.stringify(formData.parentDetails),
       );
-      formPayload.append("guardian", JSON.stringify(formData.guardian));
 
-      // Append files
+      // Append Files individually
       Object.keys(formData.documents).forEach((key) => {
-        if (formData.documents[key]) {
-          formPayload.append(key, formData.documents[key]);
+        const file = formData.documents[key];
+        if (file) {
+          dataToSend.append(key, file);
+          console.log(
+            `📁 File Attached: ${key} ->`,
+            file.name,
+            `(${Math.round(file.size / 1024)} KB)`,
+          );
         }
       });
-      console.log("Submitting form...");
 
-      const res = await fetch(`${API_BASE_URL}/applications`, {
-        method: "POST",
-        body: formPayload,
-      });
-      console.log("Response status:", res.status);
-
-      let data;
+      // 3. LOG EVERYTHING SENDING
+      // Since FormData is an opaque object, we use this trick to see its contents:
+      console.log("--- 📋 FIELD DATA ---");
+      for (let [key, value] of dataToSend.entries()) {
+        console.log(`${key}:`, value);
+      }
 
       try {
-        data = await res.json();
-      } catch (err) {
-        throw new Error("Server error (not JSON response)");
-      }
+        // Example API Call (commented out for now)
+        // const response = await axios.post('/api/enroll', dataToSend);
 
-      if (!res.ok) {
-        throw new Error(data.message || "Something went wrong");
-      }
+        // Simulate network delay for your "Submitting..." button state
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      setTrackingId(data.trackingId);
-      setIsSubmitted(true);
-      setFormData(initialFormState);
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setIsSubmitting(false);
+        console.log("✅ Submission Successful!");
+        alert("Application Submitted Successfully!");
+      } catch (error) {
+        console.error("❌ Submission Error:", error);
+      } finally {
+        setIsSubmitting(false);
+        console.log("--- 🔚 FORM SUBMISSION END ---");
+      }
+    } else {
+      console.log("⚠️ Validation Failed. Check red fields.");
     }
   };
 
@@ -198,6 +217,15 @@ const OnlineApplication = () => {
   );
 
   const today = new Date().toISOString().split("T")[0];
+  const groupedCourses = Object.entries(coursesData).reduce(
+    (acc, [key, course]) => {
+      const category = course.category;
+      if (!acc[category]) acc[category] = [];
+      acc[category].push({ id: key, title: course.title });
+      return acc;
+    },
+    {},
+  );
 
   if (isSubmitted) {
     return (
@@ -300,39 +328,143 @@ const OnlineApplication = () => {
               {/* Changed to grid-cols-3 for cleaner look with Location */}
               <div className="space-y-1">
                 <Label text="Campus" required />
-                <input
-                  type="text"
-                  placeholder="e.g. Main Campus"
-                  className={`w-full px-4 py-3 rounded-xl border transition-all outline-none ${errors.campus ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
-                  value={formData.campusInfo.campus}
-                  onChange={(e) =>
-                    handleChange("campusInfo", "campus", e.target.value)
-                  }
-                />
-              </div>
-              <div className="space-y-1">
-                <Label text="Location" required />
-                <input
-                  type="text"
-                  placeholder="e.g. Kolkata"
-                  className={`w-full px-4 py-3 rounded-xl border transition-all outline-none ${errors.campusLocation ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
-                  value={formData.campusInfo.campusLocation}
-                  onChange={(e) =>
-                    handleChange("campusInfo", "campusLocation", e.target.value)
-                  }
-                />
+
+                {/* Relative wrapper to hold the select and the icon */}
+                <div className="relative">
+                  <select
+                    className={`w-full px-4 py-3 rounded-xl border bg-white transition-all outline-none appearance-none cursor-pointer pr-10 ${
+                      errors.campus
+                        ? "border-red-500"
+                        : "border-gray-300 focus:ring-2 focus:ring-indigo-500"
+                    }`}
+                    value={formData.campusInfo.campus}
+                    onChange={(e) =>
+                      handleChange("campusInfo", "campus", e.target.value)
+                    }
+                  >
+                    <option disabled value="">
+                      Select Campus
+                    </option>
+                    <option value="Main Campus">Bagnan Campus</option>
+                    <option value="Durgapur Campus">Moulali Campus</option>
+                    <option value="Kolkata Campus">Joka Campus</option>
+                  </select>
+
+                  {/* Custom Dropdown Sign */}
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                    <svg
+                      className="h-5 w-5 text-gray-400"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
               <div className="space-y-1">
                 <Label text="Course Applied" required />
-                <input
-                  type="text"
-                  placeholder="e.g. B.Tech CS"
-                  className={`w-full px-4 py-3 rounded-xl border transition-all outline-none ${errors.course ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
-                  value={formData.campusInfo.course}
-                  onChange={(e) =>
-                    handleChange("campusInfo", "course", e.target.value)
-                  }
-                />
+
+                {/* 1. Added relative wrapper */}
+                <div className="relative">
+                  <select
+                    className={`w-full px-4 py-3 rounded-xl border bg-white transition-all outline-none appearance-none cursor-pointer ${
+                      errors.course
+                        ? "border-red-500"
+                        : "border-gray-300 focus:ring-2 focus:ring-indigo-500"
+                    }`}
+                    value={formData.campusInfo.course}
+                    onChange={(e) =>
+                      handleChange("campusInfo", "course", e.target.value)
+                    }
+                  >
+                    <option disabled value="">
+                      Select a Course
+                    </option>
+                    {Object.entries(groupedCourses).map(
+                      ([category, courses]) => (
+                        <optgroup
+                          label={category}
+                          key={category}
+                          className="font-semibold text-gray-600"
+                        >
+                          {courses.map((course) => (
+                            <option
+                              key={course.id}
+                              value={course.id}
+                              className="font-normal text-black"
+                            >
+                              {course.title}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ),
+                    )}
+                  </select>
+
+                  {/* 2. Custom Dropdown Sign (SVG) */}
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                    <svg
+                      className="h-5 w-5 text-gray-400"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label text="Course Duration" required />
+                <div className="relative">
+                  <select
+                    className={`w-full px-4 py-3 rounded-xl border bg-white transition-all outline-none appearance-none cursor-pointer pr-10 ${
+                      errors.duration
+                        ? "border-red-500"
+                        : "border-gray-300 focus:ring-2 focus:ring-indigo-500"
+                    }`}
+                    value={formData.campusInfo.duration}
+                    onChange={(e) =>
+                      handleChange("campusInfo", "duration", e.target.value)
+                    }
+                  >
+                    <option disabled value="">
+                      Select Duration
+                    </option>
+                    <option value="3 Months">3 Months</option>
+                    <option value="6 Months">6 Months</option>
+                    <option value="12 Months">12 Months</option>
+                    <option value="18 Months">18 Months</option>
+                    <option value="2 Years">2 Years</option>
+                    <option value="3 Years">3 Years</option>
+                  </select>
+
+                  {/* Custom Dropdown Sign */}
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                    <svg
+                      className="h-5 w-5 text-gray-400"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -376,18 +508,42 @@ const OnlineApplication = () => {
                 </div>
                 <div className="space-y-1">
                   <Label text="Gender" required />
-                  <select
-                    className={`w-full px-4 py-3 rounded-xl border transition-all bg-white ${errors.gender ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
-                    value={formData.studentDetails.gender}
-                    onChange={(e) =>
-                      handleChange("studentDetails", "gender", e.target.value)
-                    }
-                  >
-                    <option value="">Select</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                    <option>Other</option>
-                  </select>
+
+                  {/* Relative wrapper for the custom arrow icon */}
+                  <div className="relative">
+                    <select
+                      className={`w-full px-4 py-3 rounded-xl border bg-white transition-all outline-none appearance-none cursor-pointer pr-10 ${
+                        errors.gender
+                          ? "border-red-500"
+                          : "border-gray-300 focus:ring-2 focus:ring-indigo-500"
+                      }`}
+                      value={formData.studentDetails.gender}
+                      onChange={(e) =>
+                        handleChange("studentDetails", "gender", e.target.value)
+                      }
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+
+                    {/* Custom Dropdown Sign (SVG) */}
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                      <svg
+                        className="h-5 w-5 text-gray-400"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <Label text="Contact No" required />
@@ -411,15 +567,45 @@ const OnlineApplication = () => {
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-1">
                   <Label text="Caste" required />
-                  <input
-                    type="text"
-                    placeholder="General / SC / ST / OBC"
-                    className={`w-full px-4 py-3 rounded-xl border transition-all outline-none ${errors.caste ? "border-red-500" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"}`}
-                    value={formData.studentDetails.caste}
-                    onChange={(e) =>
-                      handleChange("studentDetails", "caste", e.target.value)
-                    }
-                  />
+
+                  <div className="relative">
+                    <select
+                      className={`w-full px-4 py-3 rounded-xl border bg-white transition-all outline-none appearance-none cursor-pointer pr-10 ${
+                        errors.caste
+                          ? "border-red-500"
+                          : "border-gray-300 focus:ring-2 focus:ring-indigo-500"
+                      }`}
+                      value={formData.studentDetails.caste}
+                      onChange={(e) =>
+                        handleChange("studentDetails", "caste", e.target.value)
+                      }
+                    >
+                      <option disabled value="">
+                        Select Category
+                      </option>
+                      <option value="General">General</option>
+                      <option value="SC">SC (Scheduled Caste)</option>
+                      <option value="ST">ST (Scheduled Tribe)</option>
+                      <option value="OBC">OBC (Other Backward Class)</option>
+                      <option value="Other">Other</option>
+                    </select>
+
+                    {/* Custom Dropdown Sign */}
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                      <svg
+                        className="h-5 w-5 text-gray-400"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <Label text="Aadhaar Number" required />

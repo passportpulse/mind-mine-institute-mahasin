@@ -9,90 +9,75 @@ const generateTrackingId = () => {
 
 exports.createApplication = async (req, res) => {
   try {
-    // 🔍 DEBUG LOGS (VERY IMPORTANT)
-    console.log("BODY:", req.body);
-    console.log("FILES:", req.files);
+    // 🔍 DEBUG LOGS
+    console.log("BODY RECEIVED:", req.body);
+    console.log("FILES RECEIVED:", req.files);
 
     // ✅ SAFE JSON PARSING
-    let campusInfo = {};
-    let studentDetails = {};
-    let parentDetails = {};
-    let guardian = {};
+    let campusInfo, studentDetails, parentDetails, guardian;
 
     try {
       campusInfo = JSON.parse(req.body.campusInfo || "{}");
-    } catch {
-      return res.status(400).json({ message: "Invalid campusInfo format" });
-    }
-
-    try {
       studentDetails = JSON.parse(req.body.studentDetails || "{}");
-    } catch {
-      return res.status(400).json({ message: "Invalid studentDetails format" });
-    }
-
-    try {
       parentDetails = JSON.parse(req.body.parentDetails || "{}");
-    } catch {
-      parentDetails = {};
-    }
-
-    try {
       guardian = JSON.parse(req.body.guardian || "{}");
-    } catch {
-      guardian = {};
+    } catch (err) {
+      return res.status(400).json({ message: "Invalid JSON format in form data fields" });
     }
 
-    // ✅ FILES
     const files = req.files || {};
 
-    // ✅ VALIDATION
-    if (!campusInfo?.course) {
-      return res.status(400).json({ message: "Course is required" });
+    // ✅ SCHEMA VALIDATION (Backend Guardrails)
+    
+    // Section 1: Campus
+    if (!campusInfo.campus || !campusInfo.course || !campusInfo.duration) {
+      return res.status(400).json({ message: "Campus, Course, and Duration are required" });
     }
 
-    if (!studentDetails?.fullName) {
-      return res.status(400).json({ message: "Full Name is required" });
+    // Section 2: Student
+    const requiredStudentFields = ['fullName', 'dob', 'gender', 'contact', 'caste', 'aadhaar', 'email', 'address'];
+    for (const field of requiredStudentFields) {
+      if (!studentDetails[field]) {
+        return res.status(400).json({ message: `Student ${field} is required` });
+      }
     }
 
-    if (!studentDetails?.contact) {
-      return res.status(400).json({ message: "Contact number is required" });
+    // Section 3: Parents
+    if (!parentDetails.fatherName || !parentDetails.fatherPhone || !parentDetails.motherName || !parentDetails.motherPhone) {
+      return res.status(400).json({ message: "Father and Mother details (Name & Phone) are required" });
     }
 
-    if (!studentDetails?.email) {
-      return res.status(400).json({ message: "Email is required" });
+    // Section 4: Document Verification (Mandatory ones per schema)
+    const requiredDocs = ['aadhaarFile', 'photo', 'tenthMarksheet', 'twelfthMarksheet'];
+    for (const doc of requiredDocs) {
+      if (!files[doc]) {
+        return res.status(400).json({ message: `${doc.replace(/([A-Z])/g, ' $1')} is required` });
+      }
     }
 
-    const emailRegex = /^\S+@\S+\.\S+$/;
-    if (!emailRegex.test(studentDetails.email)) {
-      return res.status(400).json({ message: "Invalid email format" });
-    }
-
-    if (studentDetails.contact.length < 10) {
-      return res.status(400).json({ message: "Invalid contact number" });
-    }
-
-    // ✅ FILE NAMES (SAFE)
+    // ✅ PREPARE DOCUMENT PATHS/FILENAMES
     const documents = {
-      aadhaarFile: files?.aadhaarFile?.[0]?.filename || "",
-      photo: files?.photo?.[0]?.filename || "",
-      tenthMarksheet: files?.tenthMarksheet?.[0]?.filename || "",
-      twelfthMarksheet: files?.twelfthMarksheet?.[0]?.filename || "",
-      graduation: files?.graduation?.[0]?.filename || "",
-      postGraduation: files?.postGraduation?.[0]?.filename || "",
+      aadhaarFile: files.aadhaarFile[0].filename,
+      photo: files.photo[0].filename,
+      tenthMarksheet: files.tenthMarksheet[0].filename,
+      twelfthMarksheet: files.twelfthMarksheet[0].filename,
+      // Optional fields use optional chaining
+      graduation: files.graduation?.[0]?.filename || "",
+      postGraduation: files.postGraduation?.[0]?.filename || "",
     };
 
-    // 🔥 TRACKING ID
+    // 🔥 GENERATE TRACKING ID
     const trackingId = generateTrackingId();
 
-    // ✅ SAVE
+    // ✅ CREATE DATABASE ENTRY
     const application = await Application.create({
+      trackingId,
+      status: "pending",
       campusInfo,
       studentDetails,
       parentDetails,
       guardian,
       documents,
-      trackingId,
     });
 
     // ✅ SUCCESS RESPONSE
@@ -100,13 +85,19 @@ exports.createApplication = async (req, res) => {
       success: true,
       message: "Application submitted successfully",
       trackingId: application.trackingId,
-      data: application,
+      id: application._id
     });
+
   } catch (error) {
     console.error("CREATE APPLICATION ERROR:", error);
 
+    // Handle Mongoose Duplicate Key Error (for trackingId)
+    if (error.code === 11000) {
+      return res.status(409).json({ message: "Duplicate tracking ID generated. Please try again." });
+    }
+
     return res.status(500).json({
-      message: "Server Error",
+      message: "Server Error during submission",
       error: error.message,
     });
   }

@@ -19,47 +19,44 @@ const applicationSchema = new mongoose.Schema(
       unique: true,
       sparse: true, // Allows null for pending/rejected apps
     },
+    // Updated to match Section 1 of your form
     campusInfo: {
-      campus: String,
-      campusLocation: String,
+      campus: { type: String, required: true },
       course: { type: String, required: true },
+      duration: { type: String, required: true }, // Added Duration
     },
+    // Updated to match Section 2
     studentDetails: {
       fullName: { type: String, required: true },
-      dob: Date,
-      gender: String,
-      caste: String,
-      aadhaar: String,
-      nationality: { type: String, default: "Indian" },
-      address: String,
-      city: String,
-      state: String,
-      pinCode: String,
+      dob: { type: Date, required: true },
+      gender: { type: String, required: true },
       contact: { type: String, required: true },
+      caste: { type: String, required: true },
+      aadhaar: { type: String, required: true },
       email: { type: String, required: true },
+      address: { type: String, required: true },
     },
+    // Updated to match Section 3
     parentDetails: {
-      fatherName: String,
+      fatherName: { type: String, required: true },
       fatherOccupation: String,
-      fatherPhone: String,
-      motherName: String,
+      fatherPhone: { type: String, required: true },
+      motherName: { type: String, required: true },
       motherOccupation: String,
-      motherPhone: String,
+      motherPhone: { type: String, required: true },
     },
-    guardian: {
-      name: String,
-      phone: String,
-    },
+    // These store the strings (URLs/Paths) after processing the file upload
     documents: {
-      aadhaarFile: String,
-      photo: String,
-      tenthMarksheet: String,
-      twelfthMarksheet: String,
-      graduation: String,
-      postGraduation: String,
+      aadhaarFile: { type: String, required: true },
+      photo: { type: String, required: true },
+      tenthMarksheet: { type: String, required: true },
+      twelfthMarksheet: { type: String, required: true },
+      graduation: { type: String }, // Optional
+      postGraduation: { type: String }, // Optional
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-module.exports = mongoose.model("Application", applicationSchema);
+const Application = mongoose.model("Application", applicationSchema);
+module.exports = Application;
