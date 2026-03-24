@@ -132,14 +132,35 @@ const Applications = () => {
                     <p className="text-indigo-600 text-xs font-bold mt-1 uppercase tracking-tight">
                       {app.campusInfo.course}
                     </p>
+                    {/* TRACKING ID */}
+                    <p className="text-[10px] font-mono text-slate-400 mt-1">
+                      {app.trackingId}
+                    </p>
                   </div>
                 </div>
 
                 {/* STATUS */}
-                <div
-                  className={`px-3 py-1 rounded-full border text-[10px] font-black uppercase ${getStatusStyle(app.status)}`}
-                >
-                  {app.status}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* STATUS */}
+                  <div
+                    className={`px-3 py-1 rounded-full border text-[10px] font-black uppercase ${getStatusStyle(app.status)}`}
+                  >
+                    {app.status}
+                  </div>
+
+                  {/* APPLICATION ID (ONLY IF APPROVED) */}
+                  {app.status === "approved" && app.applicationId && (
+                    <div className="px-3 py-1 rounded-full bg-green-50 text-green-700 text-[10px] font-bold border border-green-200">
+                      ID: {app.applicationId}
+                    </div>
+                  )}
+
+                  {/* FEES */}
+                  {app.status === "approved" && app.fees && (
+                    <div className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-200">
+                      ₹ {app.fees}
+                    </div>
+                  )}
                 </div>
 
                 {/* SHOW FEES IF APPROVED */}
