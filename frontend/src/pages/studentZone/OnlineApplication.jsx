@@ -310,7 +310,7 @@ const handleSubmit = async (e) => {
     <div className="max-w-5xl mx-auto py-10 px-4">
       <div className="mb-10 text-center md:text-left">
         <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">
-          Student Enrollment <span className="text-indigo-600">Form</span>
+          Student Admission <span className="text-indigo-600">Form</span>
         </h2>
         <p className="mt-2 text-lg text-gray-500 font-medium">
           Session: 2026–2027 | Admission Office
@@ -351,9 +351,9 @@ const handleSubmit = async (e) => {
                     <option disabled value="">
                       Select Campus
                     </option>
-                    <option value="Main Campus">Bagnan Campus</option>
-                    <option value="Durgapur Campus">Moulali Campus</option>
-                    <option value="Kolkata Campus">Joka Campus</option>
+                    <option value="Bagnan Campus">Bagnan Campus</option>
+                    <option value="Moulali Campus">Moulali Campus</option>
+                    <option value="Joka Campus">Joka Campus</option>
                   </select>
 
                   {/* Custom Dropdown Sign */}
@@ -801,9 +801,9 @@ const handleSubmit = async (e) => {
                   name: "twelfthMarksheet",
                   required: true,
                 },
-                { label: "Graduation", name: "graduation", required: false },
+                { label: "Graduation (If Any)", name: "graduation", required: false },
                 {
-                  label: "Post Graduation",
+                  label: "Post Graduation (If Any)",
                   name: "postGraduation",
                   required: false,
                 },

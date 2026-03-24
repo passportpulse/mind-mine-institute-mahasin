@@ -20,12 +20,12 @@ import {
 
 const studentZoneMenu = [
   {
-    label: "Enquiry",
+    label: "Enquiry Form",
     path: "/student-zone/enquiry",
     icon: <FileText size={18} />,
   },
   {
-    label: "Online Application",
+    label: "Admission Form",
     path: "/student-zone/online-application",
     icon: <ClipboardList size={18} />,
   },

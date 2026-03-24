@@ -22,36 +22,67 @@ exports.createApplication = async (req, res) => {
       parentDetails = JSON.parse(req.body.parentDetails || "{}");
       guardian = JSON.parse(req.body.guardian || "{}");
     } catch (err) {
-      return res.status(400).json({ message: "Invalid JSON format in form data fields" });
+      return res
+        .status(400)
+        .json({ message: "Invalid JSON format in form data fields" });
     }
 
     const files = req.files || {};
 
     // ✅ SCHEMA VALIDATION (Backend Guardrails)
-    
+
     // Section 1: Campus
     if (!campusInfo.campus || !campusInfo.course || !campusInfo.duration) {
-      return res.status(400).json({ message: "Campus, Course, and Duration are required" });
+      return res
+        .status(400)
+        .json({ message: "Campus, Course, and Duration are required" });
     }
 
     // Section 2: Student
-    const requiredStudentFields = ['fullName', 'dob', 'gender', 'contact', 'caste', 'aadhaar', 'email', 'address'];
+    const requiredStudentFields = [
+      "fullName",
+      "dob",
+      "gender",
+      "contact",
+      "caste",
+      "aadhaar",
+      "email",
+      "address",
+    ];
     for (const field of requiredStudentFields) {
       if (!studentDetails[field]) {
-        return res.status(400).json({ message: `Student ${field} is required` });
+        return res
+          .status(400)
+          .json({ message: `Student ${field} is required` });
       }
     }
 
     // Section 3: Parents
-    if (!parentDetails.fatherName || !parentDetails.fatherPhone || !parentDetails.motherName || !parentDetails.motherPhone) {
-      return res.status(400).json({ message: "Father and Mother details (Name & Phone) are required" });
+    if (
+      !parentDetails.fatherName ||
+      !parentDetails.fatherPhone ||
+      !parentDetails.motherName ||
+      !parentDetails.motherPhone
+    ) {
+      return res
+        .status(400)
+        .json({
+          message: "Father and Mother details (Name & Phone) are required",
+        });
     }
 
     // Section 4: Document Verification (Mandatory ones per schema)
-    const requiredDocs = ['aadhaarFile', 'photo', 'tenthMarksheet', 'twelfthMarksheet'];
+    const requiredDocs = [
+      "aadhaarFile",
+      "photo",
+      "tenthMarksheet",
+      "twelfthMarksheet",
+    ];
     for (const doc of requiredDocs) {
       if (!files[doc]) {
-        return res.status(400).json({ message: `${doc.replace(/([A-Z])/g, ' $1')} is required` });
+        return res
+          .status(400)
+          .json({ message: `${doc.replace(/([A-Z])/g, " $1")} is required` });
       }
     }
 
@@ -85,15 +116,18 @@ exports.createApplication = async (req, res) => {
       success: true,
       message: "Application submitted successfully",
       trackingId: application.trackingId,
-      id: application._id
+      id: application._id,
     });
-
   } catch (error) {
     console.error("CREATE APPLICATION ERROR:", error);
 
     // Handle Mongoose Duplicate Key Error (for trackingId)
     if (error.code === 11000) {
-      return res.status(409).json({ message: "Duplicate tracking ID generated. Please try again." });
+      return res
+        .status(409)
+        .json({
+          message: "Duplicate tracking ID generated. Please try again.",
+        });
     }
 
     return res.status(500).json({
@@ -105,20 +139,15 @@ exports.createApplication = async (req, res) => {
 
 exports.updateApplication = async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, applicationId } = req.body;
     let updateData = { ...req.body };
-
+    // validation
     if (status === "approved") {
-      // Generate ID only if it doesn't already exist (prevents overwriting on re-approval)
-      const existingApp = await Application.findById(req.params.id);
-      if (!existingApp.applicationId) {
-        const year = new Date().getFullYear();
-        const randomDigits = Math.floor(1000 + Math.random() * 9000);
-        updateData.applicationId = `MMI-${year}-${randomDigits}`;
+      if (!applicationId) {
+        return res.status(400).json({
+          message: "Application ID is required for approval",
+        });
       }
-    } else {
-      // 🔥 If rejected or pending, remove the Application ID
-      updateData.applicationId = null;
     }
 
     const updated = await Application.findByIdAndUpdate(

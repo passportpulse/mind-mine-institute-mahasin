@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { API_BASE_URL, getAdminHeaders } from "../../config/api";
+import { useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Applications = () => {
   const [apps, setApps] = useState([]);
@@ -7,6 +9,12 @@ const Applications = () => {
   const [expandedIds, setExpandedIds] = useState([]);
   const [feeInputId, setFeeInputId] = useState(null);
   const [feeValue, setFeeValue] = useState("");
+  const [applicationIdValue, setApplicationIdValue] = useState("");
+
+  const [searchParams] = useSearchParams();
+  const branch = searchParams.get("branch");
+
+  const navigate = useNavigate();
 
   const fetchApps = async () => {
     setLoading(true);
@@ -25,7 +33,11 @@ const Applications = () => {
 
   useEffect(() => {
     fetchApps();
-  }, []);
+  }, [branch]);
+
+  const filteredApps = branch
+    ? apps.filter((app) => app.campusInfo.campus === branch)
+    : apps;
 
   const toggleExpand = (id) => {
     setExpandedIds((prevIds) =>
@@ -60,10 +72,13 @@ const Applications = () => {
         body: JSON.stringify({
           status: "approved",
           fees: Number(feeValue),
+          applicationId: applicationIdValue, // 🔥 NEW
         }),
       });
+
       setFeeInputId(null);
       setFeeValue("");
+      setApplicationIdValue(""); // reset
       fetchApps();
     } catch (err) {
       console.error(err);
@@ -83,22 +98,56 @@ const Applications = () => {
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto bg-slate-50 min-h-screen">
-      <div className="flex justify-between items-end mb-8">
-        <div>
-          <h2 className="text-3xl font-black text-slate-800">Admin Panel</h2>
-          <p className="text-slate-500">
-            Review student enrollment applications
-          </p>
-        </div>
-        <div className="text-right">
-          <span className="text-2xl font-bold text-indigo-600">
-            {apps.length}
-          </span>
-          <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
-            Total Apps
-          </p>
-        </div>
-      </div>
+<div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+  
+  {/* LEFT SIDE */}
+  <div className="flex flex-col gap-2">
+    <h2 className="text-3xl font-black text-slate-800">
+      Admin Panel
+    </h2>
+
+    <p className="text-slate-500 text-sm">
+      Review student enrollment applications
+    </p>
+
+    {/* BRANCH INFO */}
+    <div className="mt-2">
+      <h3 className="text-lg font-bold text-slate-700 leading-tight">
+        {branch ? `${branch} Applications` : "All Applications"}
+      </h3>
+
+      <p className="text-xs text-gray-500">
+        {branch
+          ? "Showing applications for selected branch"
+          : "Showing all applications"}
+      </p>
+    </div>
+  </div>
+
+  {/* RIGHT SIDE */}
+  <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto">
+    
+    {branch && (
+      <button
+        onClick={() => navigate("/admin/applications")}
+        className="px-4 py-2 text-xs font-bold bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition whitespace-nowrap"
+      >
+        Clear Filter
+      </button>
+    )}
+
+    <div className="text-right">
+      <span className="block text-3xl font-extrabold text-indigo-600 leading-none">
+        {filteredApps.length}
+      </span>
+      <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
+        Total Applications
+      </p>
+    </div>
+
+  </div>
+</div>
+
 
       {loading ? (
         <div className="flex justify-center p-20 animate-pulse text-slate-400 font-bold">
@@ -106,7 +155,7 @@ const Applications = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {apps.map((app) => (
+          {filteredApps.map((app) => (
             <div
               key={app._id}
               className="bg-white shadow-sm border border-slate-200 rounded-3xl overflow-hidden"
@@ -163,13 +212,6 @@ const Applications = () => {
                   )}
                 </div>
 
-                {/* SHOW FEES IF APPROVED */}
-                {app.status === "approved" && app.fees && (
-                  <div className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-200">
-                    ₹ {app.fees}
-                  </div>
-                )}
-
                 <button
                   onClick={() => toggleExpand(app._id)}
                   className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold transition-all"
@@ -212,8 +254,17 @@ const Applications = () => {
                         Student Details
                       </h4>
                       <div className="text-sm space-y-1">
-                        <p>
-                          <b>DOB:</b> {app.studentDetails.dob?.split("T")[0]}
+                        <p className="mb-1 text-sm">
+                          <b>DOB:</b>{" "}
+                          {app.studentDetails.dob
+                            ? (() => {
+                                const [year, month, day] =
+                                  app.studentDetails.dob
+                                    .split("T")[0]
+                                    .split("-");
+                                return `${day}-${month}-${year.slice(-2)}`;
+                              })()
+                            : "N/A"}
                         </p>
                         <p>
                           <b>Gender:</b> {app.studentDetails.gender}
@@ -340,22 +391,30 @@ const Applications = () => {
                   <div className="flex items-center gap-3 w-full md:w-auto">
                     <input
                       type="number"
-                      placeholder="Enter Amount"
+                      placeholder="Enter Fees"
                       value={feeValue}
                       onChange={(e) => setFeeValue(e.target.value)}
-                      className="bg-white px-2 py-1 rounded-xl text-sm font-semibold w-full md:w-32 outline-none"
+                      className="bg-white px-2 py-1 rounded-xl text-sm w-32"
                     />
-                    <button
-                      onClick={() => submitFees(app._id)}
-                      className="bg-indigo-500 text-white px-6 py-2 rounded-xl text-xs font-bold"
-                    >
-                      Confirm
-                    </button>
+
+                    <input
+                      type="text"
+                      placeholder="Application ID"
+                      value={applicationIdValue}
+                      onChange={(e) => setApplicationIdValue(e.target.value)}
+                      className="bg-white px-2 py-1 rounded-xl text-sm w-40"
+                    />
                     <button
                       onClick={() => setFeeInputId(null)}
                       className="text-slate-400 text-xs font-bold px-3"
                     >
                       Cancel
+                    </button>
+                    <button
+                      onClick={() => submitFees(app._id)}
+                      className="text-slate-400 text-xs font-bold px-3"
+                    >
+                      Confirm
                     </button>
                   </div>
                 </div>

@@ -2,8 +2,8 @@ import { Outlet, useLocation } from "react-router-dom";
 import mainBanner from "../../assets/mindmine/mindmine14.jpeg";
 
 const pageTitleMap = {
-  "/student-zone/enquiry": "Enquiry",
-  "/student-zone/online-application": "Online Application",
+  "/student-zone/enquiry": "Enquiry Form",
+  "/student-zone/online-application": "Admission Form",
   "/student-zone/notice": "Notice",
   "/student-zone/payment": "Payment",
   "/student-zone/check-status": "Check Status",
