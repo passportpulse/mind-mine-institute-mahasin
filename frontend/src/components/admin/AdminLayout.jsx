@@ -21,6 +21,12 @@ const AdminLayout = () => {
           Dashboard
         </button>
         <button
+          onClick={() => navigate("/admin/enquiries")}
+          className="block w-full mb-3 text-left"
+        >
+          Enquiries
+        </button>
+        <button
           onClick={() => navigate("/admin/applications")}
           className="block w-full mb-3 text-left"
         >

@@ -25,6 +25,8 @@ const branches = [
 
 const Dashboard = () => {
   const [branchStats, setBranchStats] = useState({});
+  const [enquiryCount, setEnquiryCount] = useState(0);
+
   const navigate = useNavigate();
   const calculateStats = (apps) => {
     const stats = {};
@@ -45,25 +47,40 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     try {
-      // ✅ 1. Show cached data instantly
-      const cached = localStorage.getItem("applications");
-      if (cached) {
-        calculateStats(JSON.parse(cached));
+      // ✅ 1. Load cached applications
+      const cachedApps = localStorage.getItem("applications");
+      if (cachedApps) {
+        calculateStats(JSON.parse(cachedApps));
       }
 
-      // ✅ 2. Fetch fresh data
-      const res = await fetch(`${API_BASE_URL}/applications`, {
-        headers: getAdminHeaders(),
-      });
+      // ✅ 2. Load cached enquiries (ADD THIS)
+      const cachedEnq = localStorage.getItem("enquiries");
+      if (cachedEnq) {
+        setEnquiryCount(JSON.parse(cachedEnq).length);
+      }
+
+      // ✅ 3. Fetch fresh data in background
+      const [res, enqRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/applications`, {
+          headers: getAdminHeaders(),
+        }),
+        fetch(`${API_BASE_URL}/enquiries`, {
+          headers: getAdminHeaders(),
+        }),
+      ]);
 
       const data = await res.json();
       const apps = data.data || [];
 
-      // ✅ 3. Save cache
-      localStorage.setItem("applications", JSON.stringify(apps));
+      const enqData = await enqRes.json();
 
-      // ✅ 4. Update UI
+      // ✅ 4. Save cache
+      localStorage.setItem("applications", JSON.stringify(apps));
+      localStorage.setItem("enquiries", JSON.stringify(enqData));
+
+      // ✅ 5. Update UI
       calculateStats(apps);
+      setEnquiryCount(enqData.length || 0);
     } catch (err) {
       console.error(err);
     }
@@ -75,6 +92,9 @@ const Dashboard = () => {
 
   const handleClick = (branchName) => {
     navigate(`/admin/applications?branch=${encodeURIComponent(branchName)}`);
+  };
+  const handleEnquiryClick = () => {
+    navigate("/admin/enquiries");
   };
 
   return (
@@ -155,6 +175,33 @@ const Dashboard = () => {
             </div>
           );
         })}
+      </div>
+      {/* ================= ENQUIRIES CARD ================= */}
+      <div className="mt-10">
+        <div
+          onClick={handleEnquiryClick}
+          className="bg-white border-l-4 border-blue-500 rounded-2xl p-6 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all max-w-sm"
+        >
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-slate-700">Enquiries</h3>
+
+            <span className="text-xs font-semibold px-2 py-1 rounded-full bg-blue-50 text-blue-600">
+              Active
+            </span>
+          </div>
+
+          <p className="text-sm text-slate-400">Total Enquiries</p>
+
+          <p className="text-3xl font-bold text-slate-900 mt-2">
+            {enquiryCount}
+          </p>
+
+          <div className="mt-5 text-right">
+            <span className="text-xs text-indigo-600 font-semibold">
+              View Details →
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -25,6 +25,7 @@ import AdminLayout from "./components/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Applications from "./pages/admin/Applications";
 import AdminLogin from "./pages/admin/AdminLogin";
+import Enquiries from "./pages/admin/Enquiries";
 
 const App = () => {
   return (
@@ -84,6 +85,7 @@ const App = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<Dashboard />} />
+            <Route path="enquiries" element={<Enquiries />} />
             <Route path="applications" element={<Applications />} />
           </Route>
         </Route>
