@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_BASE_URL, getAdminHeaders } from "../../config/api";
 
 const Enquiries = () => {
   const [data, setData] = useState([]);
@@ -7,9 +8,7 @@ const Enquiries = () => {
   const fetchEnquiries = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/enquiries`, {
-        headers: {
-          "admin-auth": localStorage.getItem("adminAuth"),
-        },
+        headers: getAdminHeaders(),
       });
 
       const result = await res.json();
