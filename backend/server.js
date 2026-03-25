@@ -35,6 +35,7 @@ app.get("/", (req, res) => {
 // ✅ ROUTES
 app.use("/api/applications", require("./routes/applicationRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes")); 
+app.use("/api/enquiries", require("./routes/enquiryRoutes"));
 
 // ✅ GLOBAL ERROR HANDLER
 app.use((err, req, res, next) => {
