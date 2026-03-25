@@ -329,7 +329,7 @@ const Applications = () => {
                           { label: "Aadhaar", key: "aadhaarFile" },
                           { label: "10th", key: "tenthMarksheet" },
                           { label: "12th", key: "twelfthMarksheet" },
-                          { label: "Grad", key: "graduation" },
+                          { label: "UG", key: "graduation" },
                           { label: "PG", key: "postGraduation" },
                         ].map(
                           (doc) =>
