@@ -6,7 +6,7 @@ const Enquiries = () => {
 
   const fetchEnquiries = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/enquiries", {
+      const res = await fetch(`${API_BASE_URL}/enquiries`, {
         headers: {
           "admin-auth": localStorage.getItem("adminAuth"),
         },
