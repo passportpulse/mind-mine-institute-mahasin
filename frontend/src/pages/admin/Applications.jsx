@@ -125,12 +125,24 @@ const Applications = () => {
   // Confirm EMI
   const confirmEmi = async (id) => {
     try {
-      console.log("EMIs to submit for", id, emis);
-      // Backend call will go here later
-      setEmiInputId(null);
-      setEmis([]);
+      if (!emis || emis.length === 0) {
+        alert("Please add at least one EMI");
+        return;
+      }
+
+      const res = await fetch(`${API_BASE_URL}/applications/${id}/emi`, {
+        method: "PATCH",
+        headers: getAdminHeaders(),
+        body: JSON.stringify({ emis }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message);
+
+      console.log("Saved EMI:", data);
     } catch (err) {
-      console.error(err);
+      console.error("Error saving EMI:", err);
     }
   };
 
@@ -540,16 +552,7 @@ const Applications = () => {
                       Close
                     </button>
                     <button
-                      onClick={() => {
-                        // confirmEmi logic
-                        console.log(
-                          "EMIs confirmed for",
-                          app._id,
-                          studentEmis[app._id] || emis,
-                        );
-                        // backend call will go here
-                        // Do NOT clear emis so it's visible
-                      }}
+                      onClick={() => confirmEmi(app._id)}
                       className="px-3 py-1 bg-green-600 text-white text-xs font-bold rounded"
                     >
                       Confirm

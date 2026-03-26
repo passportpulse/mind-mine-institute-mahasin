@@ -9,7 +9,7 @@ const {
   getApplicationById,
   updateApplication,
   getApplicationByTrackingId,
-  getApplicationByPhone,
+  getApplicationByPhone,updateEmis,
 } = require("../controllers/applicationController");
 
 // ✅ Multer fields
@@ -43,5 +43,6 @@ router.get("/phone/:phone", getApplicationByPhone);
 router.get("/", adminAuth, getApplications);
 router.get("/:id", adminAuth, getApplicationById);
 router.patch("/:id", adminAuth, updateApplication);
+router.patch("/:id/emi", adminAuth, updateEmis);
 
 module.exports = router;

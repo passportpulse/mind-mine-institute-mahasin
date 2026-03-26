@@ -92,33 +92,32 @@ const Dashboard = () => {
   useEffect(() => {
     fetchData();
   }, []);
-const handleSearch = async () => {
-  if (!searchValue) return;
+  const handleSearch = async () => {
+    if (!searchValue) return;
 
-  try {
-    const endpoint =
-      searchType === "tracking"
-        ? `${API_BASE_URL}/applications/status/${searchValue.trim()}`
-        : `${API_BASE_URL}/applications/phone/${searchValue.trim()}`;
+    try {
+      const endpoint =
+        searchType === "tracking"
+          ? `${API_BASE_URL}/applications/status/${searchValue.trim()}`
+          : `${API_BASE_URL}/applications/phone/${searchValue.trim()}`;
 
-    const res = await fetch(endpoint, {
-      headers: searchType === "tracking" ? {} : getAdminHeaders(),
-    });
+      const res = await fetch(endpoint, {
+        headers: searchType === "tracking" ? {} : getAdminHeaders(),
+      });
 
-    const data = await res.json();
-
-    if (data.success) {
-      setSearchResult(data.data);
-    } else {
-      setSearchResult(null);
-      alert(data.message || "Not found");
+      const data = await res.json();
+      console.log(data);
+      if (data.success) {
+        setSearchResult(data.data);
+      } else {
+        setSearchResult(null);
+        alert(data.message || "Not found");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error fetching application");
     }
-  } catch (err) {
-    console.error(err);
-    alert("Error fetching application");
-  }
-};
-
+  };
 
   const handleClick = (branchName) => {
     navigate(`/admin/applications?branch=${encodeURIComponent(branchName)}`);
