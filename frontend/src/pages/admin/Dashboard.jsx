@@ -28,7 +28,13 @@ const Dashboard = () => {
   const [enquiryCount, setEnquiryCount] = useState(0);
   const [searchValue, setSearchValue] = useState("");
   const [searchResult, setSearchResult] = useState(null);
-  const [searchType, setSearchType] = useState("tracking"); // "tracking" or "phone"
+  const [searchType, setSearchType] = useState("tracking");
+  const [feeInputId, setFeeInputId] = useState(null);
+  const [feeValue, setFeeValue] = useState("");
+  const [applicationIdValue, setApplicationIdValue] = useState("");
+
+  const [emiInputId, setEmiInputId] = useState(null);
+  const [studentEmis, setStudentEmis] = useState({});
 
   const navigate = useNavigate();
   const calculateStats = (apps) => {
@@ -84,6 +90,86 @@ const Dashboard = () => {
       // ✅ 5. Update UI
       calculateStats(apps);
       setEnquiryCount(enqData.length || 0);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const updateStatus = async (id, status) => {
+    if (status === "approved") {
+      setFeeInputId(id);
+      return;
+    }
+
+    try {
+      await fetch(`${API_BASE_URL}/applications/${id}`, {
+        method: "PATCH",
+        headers: getAdminHeaders(),
+        body: JSON.stringify({ status }),
+      });
+
+      handleSearch(); // refresh result
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const submitFees = async (id) => {
+    try {
+      await fetch(`${API_BASE_URL}/applications/${id}`, {
+        method: "PATCH",
+        headers: getAdminHeaders(),
+        body: JSON.stringify({
+          status: "approved",
+          fees: Number(feeValue),
+          applicationId: applicationIdValue,
+        }),
+      });
+
+      // ✅ UPDATE UI instantly
+      setSearchResult((prev) => ({
+        ...prev,
+        status: "approved",
+        fees: Number(feeValue),
+        applicationId: applicationIdValue,
+      }));
+
+      setFeeInputId(null);
+      setFeeValue("");
+      setApplicationIdValue("");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const openEmiOverlay = (id, existingEmis) => {
+    setEmiInputId(id);
+
+    setStudentEmis((prev) => ({
+      ...prev,
+      [id]: prev[id]?.length ? prev[id] : existingEmis || [],
+    }));
+  };
+  const confirmEmi = async (id) => {
+    try {
+      const emiData = studentEmis[id] || [];
+
+      if (!emiData.length) {
+        alert("Please add at least one EMI");
+        return;
+      }
+
+      await fetch(`${API_BASE_URL}/applications/${id}/emi`, {
+        method: "PATCH",
+        headers: getAdminHeaders(),
+        body: JSON.stringify({ emis: emiData }),
+      });
+
+      // ✅ UPDATE UI instantly
+      setSearchResult((prev) => ({
+        ...prev,
+        emis: emiData,
+      }));
+
+      setEmiInputId(null);
     } catch (err) {
       console.error(err);
     }
@@ -192,8 +278,203 @@ const Dashboard = () => {
                 Tracking ID: {searchResult.trackingId} | Status:{" "}
                 {searchResult.status}
               </p>
+              {searchResult.fees && (
+                <p className="text-sm text-green-600">
+                  Fees: ₹{searchResult.fees} | Application ID:{" "}
+                  {searchResult.applicationId}
+                </p>
+              )}
+              {searchResult.emis?.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="font-semibold text-lg mb-2">EMI Details</h3>
+                  {searchResult.emis.map((emi, i) => (
+                    <div key={i} className="text-sm text-slate-600">
+                      ₹{emi.amount} -{" "}
+                      {emi.dueDate
+                        ? (() => {
+                            const [year, month, day] = emi.dueDate
+                              .split("T")[0]
+                              .split("-");
+                            return `${day}-${month}-${year}`;
+                          })()
+                        : ""}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+
+            <button
+              onClick={() => {
+                setSearchResult(null);
+                setFeeInputId(null);
+                setEmiInputId(null);
+              }}
+              className="text-red-500 text-sm font-bold"
+            >
+              ✕ Close
+            </button>
           </div>
+
+          <div className="flex gap-3 mt-4">
+            <button
+              onClick={() => updateStatus(searchResult._id, "approved")}
+              className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded"
+            >
+              Approve & Set Fees
+            </button>
+
+            <button
+              onClick={() =>
+                openEmiOverlay(searchResult._id, searchResult.emis)
+              }
+              disabled={searchResult.status !== "approved"}
+              className={`px-4 py-2 text-xs font-bold rounded ${
+                searchResult.status !== "approved"
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-indigo-50 text-indigo-700"
+              }`}
+            >
+              Set EMI
+            </button>
+
+            <button
+              onClick={() => updateStatus(searchResult._id, "rejected")}
+              className="px-4 py-2 bg-red-50 text-red-600 text-xs font-bold rounded"
+            >
+              Reject
+            </button>
+          </div>
+          {searchResult && feeInputId === searchResult._id && (
+            <div className="p-4 bg-slate-900 mt-4 rounded flex flex-col md:flex-row gap-3 items-center">
+              <input
+                type="number"
+                placeholder="Enter Fees"
+                value={feeValue}
+                onChange={(e) => setFeeValue(e.target.value)}
+                className="px-2 py-1 rounded text-sm"
+              />
+
+              <input
+                type="text"
+                placeholder="Application ID"
+                value={applicationIdValue}
+                onChange={(e) => setApplicationIdValue(e.target.value)}
+                className="px-2 py-1 rounded text-sm"
+              />
+
+              <button
+                onClick={() => setFeeInputId(null)}
+                className="text-gray-300 text-xs"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={() => submitFees(searchResult._id)}
+                className="bg-green-600 text-white px-3 py-1 rounded text-xs"
+              >
+                Confirm
+              </button>
+            </div>
+          )}
+
+          {searchResult && emiInputId === searchResult._id && (
+            <div className="p-4 bg-slate-900 mt-4 rounded flex flex-col gap-3">
+              {(studentEmis[searchResult._id] || []).map((emi, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <input
+                    type="number"
+                    placeholder="Amount"
+                    value={emi.amount}
+                    onChange={(e) => {
+                      const newEmis = [
+                        ...(studentEmis[searchResult._id] || []),
+                      ];
+
+                      newEmis[index].amount = e.target.value;
+
+                      setStudentEmis((prev) => ({
+                        ...prev,
+
+                        [searchResult._id]: newEmis,
+                      }));
+                    }}
+                    className="px-2 py-1 rounded text-sm"
+                  />
+
+                  <input
+                    type="date"
+                    value={emi.dueDate}
+                    onChange={(e) => {
+                      const newEmis = [
+                        ...(studentEmis[searchResult._id] || []),
+                      ];
+
+                      newEmis[index].dueDate = e.target.value;
+
+                      setStudentEmis((prev) => ({
+                        ...prev,
+
+                        [searchResult._id]: newEmis,
+                      }));
+                    }}
+                    className="px-2 py-1 rounded text-sm"
+                  />
+
+                  <button
+                    onClick={() => {
+                      const newEmis = (
+                        studentEmis[searchResult._id] || []
+                      ).filter((_, i) => i !== index);
+
+                      setStudentEmis((prev) => ({
+                        ...prev,
+
+                        [searchResult._id]: newEmis,
+                      }));
+                    }}
+                    className="text-red-400 text-xs"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() =>
+                    setStudentEmis((prev) => ({
+                      ...prev,
+
+                      [searchResult._id]: [
+                        ...(prev[searchResult._id] || []),
+
+                        { amount: "", dueDate: "" },
+                      ],
+                    }))
+                  }
+                  className="bg-indigo-500 text-white px-2 py-1 text-xs rounded"
+                >
+                  + Add EMI
+                </button>
+
+                <button
+                  onClick={() => confirmEmi(searchResult._id)}
+                  className="bg-green-600 text-white px-2 py-1 text-xs rounded"
+                >
+                  Confirm
+                </button>
+
+                <button
+                  onClick={() => setEmiInputId(null)}
+                  className="bg-gray-400 text-white px-2 py-1 text-xs rounded"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* 🔹 Two-column layout */}
           <div className="grid md:grid-cols-2 gap-6">
