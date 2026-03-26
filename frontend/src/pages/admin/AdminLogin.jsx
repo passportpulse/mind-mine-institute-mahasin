@@ -32,7 +32,7 @@ const AdminLogin = () => {
         {/* ID INPUT */}
         <input
           type="text"
-          placeholder="Admin ID"
+          placeholder="Admin IDdddd"
           className="w-full px-4 py-3 mb-4 border rounded-xl"
           onChange={(e) => setForm({ ...form, id: e.target.value })}
         />

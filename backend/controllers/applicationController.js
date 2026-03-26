@@ -217,3 +217,37 @@ exports.getApplicationByTrackingId = async (req, res) => {
     });
   }
 };
+// Get Application by Phone Number (Public)
+exports.getApplicationByPhone = async (req, res) => {
+  try {
+    const { phone } = req.params;
+
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number is required",
+      });
+    }
+
+    // Look for the phone number in studentDetails.contact
+    const application = await Application.findOne({ "studentDetails.contact": phone });
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "No application found with this phone number.",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: application,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching application by phone.",
+      error: error.message,
+    });
+  }
+};
