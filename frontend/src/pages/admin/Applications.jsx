@@ -11,7 +11,6 @@ const Applications = () => {
   const [feeValue, setFeeValue] = useState("");
   const [applicationIdValue, setApplicationIdValue] = useState("");
   const [emiInputId, setEmiInputId] = useState(null);
-  const [emis, setEmis] = useState([]);
   const [studentEmis, setStudentEmis] = useState({});
 
   const [searchParams] = useSearchParams();
@@ -100,9 +99,15 @@ const Applications = () => {
   };
 
   // Open EMI overlay
-  const openEmiOverlay = (id) => {
+  const openEmiOverlay = (id, existingEmis) => {
     setEmiInputId(id);
-    setEmis([]); // reset for each student
+
+    setStudentEmis((prev) => ({
+      ...prev,
+      [id]: prev[id]?.length
+        ? prev[id] // ✅ keep existing (DO NOT override)
+        : existingEmis || [], // only set first time
+    }));
   };
 
   // Add new EMI row
@@ -125,7 +130,9 @@ const Applications = () => {
   // Confirm EMI
   const confirmEmi = async (id) => {
     try {
-      if (!emis || emis.length === 0) {
+      const emiData = studentEmis[id] || []; // ✅ correct source
+
+      if (!emiData.length) {
         alert("Please add at least one EMI");
         return;
       }
@@ -133,7 +140,7 @@ const Applications = () => {
       const res = await fetch(`${API_BASE_URL}/applications/${id}/emi`, {
         method: "PATCH",
         headers: getAdminHeaders(),
-        body: JSON.stringify({ emis }),
+        body: JSON.stringify({ emis: emiData }),
       });
 
       const data = await res.json();
@@ -141,6 +148,9 @@ const Applications = () => {
       if (!res.ok) throw new Error(data.message);
 
       console.log("Saved EMI:", data);
+
+      // ✅ keep EMI visible (DON'T clear)
+      setEmiInputId(null);
     } catch (err) {
       console.error("Error saving EMI:", err);
     }
@@ -417,8 +427,13 @@ const Applications = () => {
                       Approve & Set Fees
                     </button>
                     <button
-                      onClick={() => openEmiOverlay(app._id)}
-                      className="px-6 py-2.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-xl hover:bg-indigo-100 transition-colors"
+                      onClick={() => openEmiOverlay(app._id, app.emis)}
+                      disabled={app.status !== "approved"}
+                      className={`px-6 py-2.5 text-xs font-bold rounded-xl transition-colors ${
+                        app.status !== "approved"
+                          ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                          : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                      }`}
                     >
                       Set EMI
                     </button>
@@ -477,58 +492,60 @@ const Applications = () => {
                     Set EMI for this student (add multiple installments):
                   </p>
 
-                  {(studentEmis[app._id] || emis).map((emi, index) => (
-                    <div key={index} className="flex gap-3 items-center">
-                      <input
-                        type="number"
-                        placeholder="EMI Amount"
-                        value={emi.amount}
-                        onChange={(e) => {
-                          const newEmis = [...(studentEmis[app._id] || emis)];
-                          newEmis[index] = {
-                            ...newEmis[index],
-                            amount: e.target.value,
-                          };
-                          setStudentEmis((prev) => ({
-                            ...prev,
-                            [app._id]: newEmis,
-                          }));
-                        }}
-                        className="w-24 px-2 py-1 rounded text-sm"
-                      />
-                      <input
-                        type="date"
-                        placeholder="Due Date"
-                        value={emi.dueDate}
-                        onChange={(e) => {
-                          const newEmis = [...(studentEmis[app._id] || emis)];
-                          newEmis[index] = {
-                            ...newEmis[index],
-                            dueDate: e.target.value,
-                          };
-                          setStudentEmis((prev) => ({
-                            ...prev,
-                            [app._id]: newEmis,
-                          }));
-                        }}
-                        className="w-32 px-2 py-1 rounded text-sm"
-                      />
-                      <button
-                        onClick={() => {
-                          const newEmis = (studentEmis[app._id] || emis).filter(
-                            (_, i) => i !== index,
-                          );
-                          setStudentEmis((prev) => ({
-                            ...prev,
-                            [app._id]: newEmis,
-                          }));
-                        }}
-                        className="text-red-500 text-xs font-bold px-2"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ))}
+                  {(studentEmis[app._id] || app.emis || []).map(
+                    (emi, index) => (
+                      <div key={index} className="flex gap-3 items-center">
+                        <input
+                          type="number"
+                          placeholder="EMI Amount"
+                          value={emi.amount}
+                          onChange={(e) => {
+                            const newEmis = [...(studentEmis[app._id] || [])];
+                            newEmis[index] = {
+                              ...newEmis[index],
+                              amount: e.target.value,
+                            };
+                            setStudentEmis((prev) => ({
+                              ...prev,
+                              [app._id]: newEmis,
+                            }));
+                          }}
+                          className="w-24 px-2 py-1 rounded text-sm"
+                        />
+                        <input
+                          type="date"
+                          placeholder="Due Date"
+                          value={emi.dueDate}
+                          onChange={(e) => {
+                            const newEmis = [...(studentEmis[app._id] || [])];
+                            newEmis[index] = {
+                              ...newEmis[index],
+                              dueDate: e.target.value,
+                            };
+                            setStudentEmis((prev) => ({
+                              ...prev,
+                              [app._id]: newEmis,
+                            }));
+                          }}
+                          className="w-32 px-2 py-1 rounded text-sm"
+                        />
+                        <button
+                          onClick={() => {
+                            const newEmis = (studentEmis[app._id] || []).filter(
+                              (_, i) => i !== index,
+                            );
+                            setStudentEmis((prev) => ({
+                              ...prev,
+                              [app._id]: newEmis,
+                            }));
+                          }}
+                          className="text-red-500 text-xs font-bold px-2"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    ),
+                  )}
 
                   <div className="flex gap-3 mt-2">
                     <button
@@ -536,7 +553,7 @@ const Applications = () => {
                         setStudentEmis((prev) => ({
                           ...prev,
                           [app._id]: [
-                            ...(prev[app._id] || emis),
+                            ...(prev[app._id] || []),
                             { amount: "", dueDate: "" },
                           ],
                         }))
@@ -561,19 +578,26 @@ const Applications = () => {
                 </div>
               )}
 
-              {(studentEmis[app._id] || []).length > 0 && (
+              {(studentEmis[app._id] || app.emis || []).length > 0 && (
                 <div className="p-4 border-t border-slate-200 bg-slate-50 rounded-b-2xl">
                   <h4 className="text-sm font-bold text-slate-800 mb-2">
                     EMI Details:
                   </h4>
                   <div className="flex flex-col gap-2">
-                    {(studentEmis[app._id] || []).map((emi, i) => (
+                    {(studentEmis[app._id] || app.emis || []).map((emi, i) => (
                       <div key={i} className="flex items-center gap-4">
                         <span className="text-sm text-slate-700">
                           ₹ {emi.amount}
                         </span>
                         <span className="text-sm text-slate-500">
-                          {emi.dueDate}
+                          {emi.dueDate
+                            ? (() => {
+                                const [year, month, day] = emi.dueDate
+                                  .split("T")[0]
+                                  .split("-");
+                                return `${day}-${month}-${year}`;
+                              })()
+                            : ""}
                         </span>
                         <button
                           onClick={() => {

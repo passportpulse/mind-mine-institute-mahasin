@@ -260,7 +260,8 @@ exports.updateEmis = async (req, res) => {
     const application = await Application.findById(id);
     if (!application) return res.status(404).json({ message: "Application not found" });
 
-    application.emis = emis; // replace old EMIs with new ones
+   application.emis.push(...emis);
+
     await application.save();
 
     res.status(200).json({ message: "EMIs updated successfully", emis: application.emis });
