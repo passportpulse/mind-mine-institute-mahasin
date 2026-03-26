@@ -26,6 +26,9 @@ const branches = [
 const Dashboard = () => {
   const [branchStats, setBranchStats] = useState({});
   const [enquiryCount, setEnquiryCount] = useState(0);
+  const [searchValue, setSearchValue] = useState("");
+  const [searchResult, setSearchResult] = useState(null);
+  const [searchType, setSearchType] = useState("tracking"); // "tracking" or "phone"
 
   const navigate = useNavigate();
   const calculateStats = (apps) => {
@@ -89,6 +92,33 @@ const Dashboard = () => {
   useEffect(() => {
     fetchData();
   }, []);
+const handleSearch = async () => {
+  if (!searchValue) return;
+
+  try {
+    const endpoint =
+      searchType === "tracking"
+        ? `${API_BASE_URL}/applications/status/${searchValue.trim()}`
+        : `${API_BASE_URL}/applications/phone/${searchValue.trim()}`;
+
+    const res = await fetch(endpoint, {
+      headers: searchType === "tracking" ? {} : getAdminHeaders(),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setSearchResult(data.data);
+    } else {
+      setSearchResult(null);
+      alert(data.message || "Not found");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Error fetching application");
+  }
+};
+
 
   const handleClick = (branchName) => {
     navigate(`/admin/applications?branch=${encodeURIComponent(branchName)}`);
@@ -106,6 +136,214 @@ const Dashboard = () => {
         </h2>
         <p className="text-slate-500 mt-1">Branch-wise application overview</p>
       </div>
+      <div className="mb-6 flex items-center gap-2">
+        <div className="relative w-full md:w-64">
+          <select
+            value={searchType}
+            onChange={(e) => setSearchType(e.target.value)}
+            className="block w-full appearance-none border border-gray-300 bg-white text-gray-700 py-2 px-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer transition-all"
+          >
+            <option value="tracking">Tracking ID</option>
+            <option value="phone">Phone Number</option>
+          </select>
+
+          {/* Custom arrow */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
+            <svg
+              className="h-4 w-4 text-gray-400"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+        </div>
+
+        <input
+          type="text"
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          placeholder={`Enter ${searchType === "tracking" ? "Tracking ID" : "Phone"}`}
+          className="border p-2 rounded flex-1"
+        />
+
+        <button
+          onClick={handleSearch}
+          className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+        >
+          Search
+        </button>
+      </div>
+      {searchResult && (
+        <div className="my-6 p-6 border rounded bg-white shadow-md space-y-6">
+          {/* 🔹 Header */}
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-800 mb-1">
+                {searchResult.studentDetails.fullName}
+              </h2>
+              <p className="text-sm text-slate-500">
+                Tracking ID: {searchResult.trackingId} | Status:{" "}
+                {searchResult.status}
+              </p>
+            </div>
+          </div>
+
+          {/* 🔹 Two-column layout */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Campus Info */}
+            <div className="p-4 border rounded-lg bg-indigo-50">
+              <h3 className="font-semibold text-lg mb-2">Campus Info</h3>
+              <p>
+                <strong>Campus:</strong> {searchResult.campusInfo.campus}
+              </p>
+              <p>
+                <strong>Course:</strong> {searchResult.campusInfo.course}
+              </p>
+              <p>
+                <strong>Duration:</strong> {searchResult.campusInfo.duration}
+              </p>
+            </div>
+
+            {/* Student Details */}
+            <div className="p-4 border rounded-lg bg-yellow-50">
+              <h3 className="font-semibold text-lg mb-2">Student Details</h3>
+              <p>
+                <strong>DOB:</strong>{" "}
+                {new Date(searchResult.studentDetails.dob).toLocaleDateString(
+                  "en-GB",
+                )}
+              </p>
+              <p>
+                <strong>Gender:</strong> {searchResult.studentDetails.gender}
+              </p>
+              <p>
+                <strong>Caste:</strong> {searchResult.studentDetails.caste}
+              </p>
+              <p>
+                <strong>Aadhaar:</strong> {searchResult.studentDetails.aadhaar}
+              </p>
+              <p>
+                <strong>Contact:</strong> {searchResult.studentDetails.contact}
+              </p>
+              <p>
+                <strong>Email:</strong> {searchResult.studentDetails.email}
+              </p>
+              <p>
+                <strong>Address:</strong> {searchResult.studentDetails.address}
+              </p>
+            </div>
+
+            {/* Parent Details */}
+            <div className="p-4 border rounded-lg bg-green-50">
+              <h3 className="font-semibold text-lg mb-2">Parent Details</h3>
+              <p>
+                <strong>Father:</strong> {searchResult.parentDetails.fatherName}{" "}
+                - Service
+              </p>
+              <p>
+                <strong>Father Phone:</strong>{" "}
+                {searchResult.parentDetails.fatherPhone}
+              </p>
+              <p>
+                <strong>Mother:</strong> {searchResult.parentDetails.motherName}{" "}
+                - Service
+              </p>
+              <p>
+                <strong>Mother Phone:</strong>{" "}
+                {searchResult.parentDetails.motherPhone}
+              </p>
+            </div>
+
+            {/* Guardian Details */}
+            {searchResult.guardian &&
+              Object.keys(searchResult.guardian).length > 0 && (
+                <div className="p-4 border rounded-lg bg-pink-50">
+                  <h3 className="font-semibold text-lg mb-2">Guardian</h3>
+                  {Object.entries(searchResult.guardian).map(([key, value]) => (
+                    <p key={key}>
+                      <strong>{key}:</strong> {value}
+                    </p>
+                  ))}
+                </div>
+              )}
+          </div>
+
+          {/* 🔹 Documents Grid */}
+          <div>
+            <h3 className="font-semibold text-lg mb-3">Documents</h3>
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {searchResult.documents.photo && (
+                <div className="border rounded p-2 text-center">
+                  <strong className="block mb-1">Photo</strong>
+                  <img
+                    src={`${API_BASE_URL}/uploads/${searchResult.documents.photo}`}
+                    alt="Photo"
+                    className="w-full h-32 object-cover rounded"
+                  />
+                </div>
+              )}
+              {searchResult.documents.aadhaarFile && (
+                <div className="border rounded p-2 text-center">
+                  <strong className="block mb-1">Aadhaar</strong>
+                  <img
+                    src={`${API_BASE_URL}/uploads/${searchResult.documents.aadhaarFile}`}
+                    alt="Aadhaar"
+                    className="w-full h-32 object-cover rounded"
+                  />
+                </div>
+              )}
+              {searchResult.documents.tenthMarksheet && (
+                <div className="border rounded p-2 text-center">
+                  <strong className="block mb-1">10th Marksheet</strong>
+                  <img
+                    src={`${API_BASE_URL}/uploads/${searchResult.documents.tenthMarksheet}`}
+                    alt="10th Marksheet"
+                    className="w-full h-32 object-cover rounded"
+                  />
+                </div>
+              )}
+              {searchResult.documents.twelfthMarksheet && (
+                <div className="border rounded p-2 text-center">
+                  <strong className="block mb-1">12th Marksheet</strong>
+                  <img
+                    src={`${API_BASE_URL}/uploads/${searchResult.documents.twelfthMarksheet}`}
+                    alt="12th Marksheet"
+                    className="w-full h-32 object-cover rounded"
+                  />
+                </div>
+              )}
+              {searchResult.documents.graduation && (
+                <div className="border rounded p-2 text-center">
+                  <strong className="block mb-1">Graduation</strong>
+                  <img
+                    src={`${API_BASE_URL}/uploads/${searchResult.documents.graduation}`}
+                    alt="Graduation"
+                    className="w-full h-32 object-cover rounded"
+                  />
+                </div>
+              )}
+              {searchResult.documents.postGraduation && (
+                <div className="border rounded p-2 text-center">
+                  <strong className="block mb-1">Post Graduation</strong>
+                  <img
+                    src={`${API_BASE_URL}/uploads/${searchResult.documents.postGraduation}`}
+                    alt="Post Graduation"
+                    className="w-full h-32 object-cover rounded"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* GRID */}
       <div className="grid gap-6 md:grid-cols-3">

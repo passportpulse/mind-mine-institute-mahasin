@@ -251,3 +251,21 @@ exports.getApplicationByPhone = async (req, res) => {
     });
   }
 };
+// PATCH /applications/:id/emi
+exports.updateEmis = async (req, res) => {
+  const { id } = req.params;
+  const { emis } = req.body; // array of { amount, dueDate }
+
+  try {
+    const application = await Application.findById(id);
+    if (!application) return res.status(404).json({ message: "Application not found" });
+
+    application.emis = emis; // replace old EMIs with new ones
+    await application.save();
+
+    res.status(200).json({ message: "EMIs updated successfully", emis: application.emis });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
