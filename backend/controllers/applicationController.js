@@ -196,7 +196,7 @@ exports.getApplicationByTrackingId = async (req, res) => {
     const { trackingId } = req.params;
 
     // Look for the trackingId in the database
-    const application = await Application.findOne({ trackingId });
+    const application = await Application.find({ trackingId });
 
     if (!application) {
       return res.status(404).json({
@@ -230,7 +230,7 @@ exports.getApplicationByPhone = async (req, res) => {
     }
 
     // Look for the phone number in studentDetails.contact
-    const application = await Application.findOne({ "studentDetails.contact": phone });
+    const application = await Application.find({ "studentDetails.contact": phone });
 
     if (!application) {
       return res.status(404).json({

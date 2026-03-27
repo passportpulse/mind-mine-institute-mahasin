@@ -27,7 +27,7 @@ const Dashboard = () => {
   const [branchStats, setBranchStats] = useState({});
   const [enquiryCount, setEnquiryCount] = useState(0);
   const [searchValue, setSearchValue] = useState("");
-  const [searchResult, setSearchResult] = useState(null);
+  const [searchResult, setSearchResult] = useState([]);
   const [searchType, setSearchType] = useState("tracking");
   const [feeInputId, setFeeInputId] = useState(null);
   const [feeValue, setFeeValue] = useState("");
@@ -266,364 +266,247 @@ const Dashboard = () => {
           Search
         </button>
       </div>
-      {searchResult && (
-        <div className="my-6 p-6 border rounded bg-white shadow-md space-y-6">
-          {/* 🔹 Header */}
-          <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-800 mb-1">
-                {searchResult.studentDetails.fullName}
-              </h2>
-              <p className="text-sm text-slate-500">
-                Tracking ID: {searchResult.trackingId} | Status:{" "}
-                {searchResult.status}
+{searchResult && searchResult.length > 0 && (
+  <div className="space-y-6">
+    {searchResult.map((app) => (
+      <div
+        key={app._id}
+        className="my-6 p-6 border rounded bg-white shadow-md space-y-6"
+      >
+        {/* 🔹 Header */}
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800 mb-1">
+              {app.studentDetails.fullName}
+            </h2>
+
+            <p className="text-sm text-slate-500">
+              Tracking ID: {app.trackingId} | Status: {app.status}
+            </p>
+
+            {app.fees && (
+              <p className="text-sm text-green-600">
+                Fees: ₹{app.fees} | Application ID: {app.applicationId}
               </p>
-              {searchResult.fees && (
-                <p className="text-sm text-green-600">
-                  Fees: ₹{searchResult.fees} | Application ID:{" "}
-                  {searchResult.applicationId}
-                </p>
-              )}
-              {searchResult.emis?.length > 0 && (
-                <div className="mt-4">
-                  <h3 className="font-semibold text-lg mb-2">EMI Details</h3>
-                  {searchResult.emis.map((emi, i) => (
-                    <div key={i} className="text-sm text-slate-600">
-                      ₹{emi.amount} -{" "}
-                      {emi.dueDate
-                        ? (() => {
-                            const [year, month, day] = emi.dueDate
-                              .split("T")[0]
-                              .split("-");
-                            return `${day}-${month}-${year}`;
-                          })()
-                        : ""}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            )}
 
-            <button
-              onClick={() => {
-                setSearchResult(null);
-                setFeeInputId(null);
-                setEmiInputId(null);
-              }}
-              className="text-red-500 text-sm font-bold"
-            >
-              ✕ Close
-            </button>
+            {/* EMI DETAILS */}
+            {app.emis?.length > 0 && (
+              <div className="mt-4">
+                <h3 className="font-semibold text-lg mb-2">EMI Details</h3>
+                {app.emis.map((emi, i) => (
+                  <div key={i} className="text-sm text-slate-600">
+                    ₹{emi.amount} -{" "}
+                    {new Date(emi.dueDate).toLocaleDateString("en-GB")}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="flex gap-3 mt-4">
+          <button
+            onClick={() => {
+              setSearchResult([]);
+              setFeeInputId(null);
+              setEmiInputId(null);
+            }}
+            className="text-red-500 text-sm font-bold"
+          >
+            ✕ Close
+          </button>
+        </div>
+
+        {/* 🔹 ACTION BUTTONS */}
+        <div className="flex gap-3 mt-4">
+          <button
+            onClick={() => updateStatus(app._id, "approved")}
+            className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded"
+          >
+            Approve & Set Fees
+          </button>
+
+          <button
+            onClick={() => openEmiOverlay(app._id, app.emis)}
+            disabled={app.status !== "approved"}
+            className={`px-4 py-2 text-xs font-bold rounded ${
+              app.status !== "approved"
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-indigo-50 text-indigo-700"
+            }`}
+          >
+            Set EMI
+          </button>
+
+          <button
+            onClick={() => updateStatus(app._id, "rejected")}
+            className="px-4 py-2 bg-red-50 text-red-600 text-xs font-bold rounded"
+          >
+            Reject
+          </button>
+        </div>
+
+        {/* 🔹 FEE OVERLAY */}
+        {feeInputId === app._id && (
+          <div className="p-4 bg-slate-900 mt-4 rounded flex flex-col md:flex-row gap-3 items-center">
+            <input
+              type="number"
+              placeholder="Enter Fees"
+              value={feeValue}
+              onChange={(e) => setFeeValue(e.target.value)}
+              className="px-2 py-1 rounded text-sm"
+            />
+
+            <input
+              type="text"
+              placeholder="Application ID"
+              value={applicationIdValue}
+              onChange={(e) => setApplicationIdValue(e.target.value)}
+              className="px-2 py-1 rounded text-sm"
+            />
+
             <button
-              onClick={() => updateStatus(searchResult._id, "approved")}
-              className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded"
+              onClick={() => setFeeInputId(null)}
+              className="text-gray-300 text-xs"
             >
-              Approve & Set Fees
+              Cancel
             </button>
 
             <button
-              onClick={() =>
-                openEmiOverlay(searchResult._id, searchResult.emis)
-              }
-              disabled={searchResult.status !== "approved"}
-              className={`px-4 py-2 text-xs font-bold rounded ${
-                searchResult.status !== "approved"
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-indigo-50 text-indigo-700"
-              }`}
+              onClick={() => submitFees(app._id)}
+              className="bg-green-600 text-white px-3 py-1 rounded text-xs"
             >
-              Set EMI
-            </button>
-
-            <button
-              onClick={() => updateStatus(searchResult._id, "rejected")}
-              className="px-4 py-2 bg-red-50 text-red-600 text-xs font-bold rounded"
-            >
-              Reject
+              Confirm
             </button>
           </div>
-          {searchResult && feeInputId === searchResult._id && (
-            <div className="p-4 bg-slate-900 mt-4 rounded flex flex-col md:flex-row gap-3 items-center">
-              <input
-                type="number"
-                placeholder="Enter Fees"
-                value={feeValue}
-                onChange={(e) => setFeeValue(e.target.value)}
-                className="px-2 py-1 rounded text-sm"
-              />
+        )}
 
-              <input
-                type="text"
-                placeholder="Application ID"
-                value={applicationIdValue}
-                onChange={(e) => setApplicationIdValue(e.target.value)}
-                className="px-2 py-1 rounded text-sm"
-              />
+        {/* 🔹 EMI OVERLAY */}
+        {emiInputId === app._id && (
+          <div className="p-4 bg-slate-900 mt-4 rounded flex flex-col gap-3">
+            {(studentEmis[app._id] || []).map((emi, index) => (
+              <div key={index} className="flex gap-2 items-center">
+                <input
+                  type="number"
+                  placeholder="Amount"
+                  value={emi.amount}
+                  onChange={(e) => {
+                    const newEmis = [...(studentEmis[app._id] || [])];
+                    newEmis[index].amount = e.target.value;
 
+                    setStudentEmis((prev) => ({
+                      ...prev,
+                      [app._id]: newEmis,
+                    }));
+                  }}
+                  className="px-2 py-1 rounded text-sm"
+                />
+
+                <input
+                  type="date"
+                  value={emi.dueDate}
+                  onChange={(e) => {
+                    const newEmis = [...(studentEmis[app._id] || [])];
+                    newEmis[index].dueDate = e.target.value;
+
+                    setStudentEmis((prev) => ({
+                      ...prev,
+                      [app._id]: newEmis,
+                    }));
+                  }}
+                  className="px-2 py-1 rounded text-sm"
+                />
+
+                <button
+                  onClick={() => {
+                    const newEmis = (
+                      studentEmis[app._id] || []
+                    ).filter((_, i) => i !== index);
+
+                    setStudentEmis((prev) => ({
+                      ...prev,
+                      [app._id]: newEmis,
+                    }));
+                  }}
+                  className="text-red-400 text-xs"
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+
+            <div className="flex gap-2">
               <button
-                onClick={() => setFeeInputId(null)}
-                className="text-gray-300 text-xs"
+                onClick={() =>
+                  setStudentEmis((prev) => ({
+                    ...prev,
+                    [app._id]: [
+                      ...(prev[app._id] || []),
+                      { amount: "", dueDate: "" },
+                    ],
+                  }))
+                }
+                className="bg-indigo-500 text-white px-2 py-1 text-xs rounded"
               >
-                Cancel
+                + Add EMI
               </button>
 
               <button
-                onClick={() => submitFees(searchResult._id)}
-                className="bg-green-600 text-white px-3 py-1 rounded text-xs"
+                onClick={() => confirmEmi(app._id)}
+                className="bg-green-600 text-white px-2 py-1 text-xs rounded"
               >
                 Confirm
               </button>
+
+              <button
+                onClick={() => setEmiInputId(null)}
+                className="bg-gray-400 text-white px-2 py-1 text-xs rounded"
+              >
+                Close
+              </button>
             </div>
-          )}
+          </div>
+        )}
 
-          {searchResult && emiInputId === searchResult._id && (
-            <div className="p-4 bg-slate-900 mt-4 rounded flex flex-col gap-3">
-              {(studentEmis[searchResult._id] || []).map((emi, index) => (
-                <div key={index} className="flex gap-2 items-center">
-                  <input
-                    type="number"
-                    placeholder="Amount"
-                    value={emi.amount}
-                    onChange={(e) => {
-                      const newEmis = [
-                        ...(studentEmis[searchResult._id] || []),
-                      ];
-
-                      newEmis[index].amount = e.target.value;
-
-                      setStudentEmis((prev) => ({
-                        ...prev,
-
-                        [searchResult._id]: newEmis,
-                      }));
-                    }}
-                    className="px-2 py-1 rounded text-sm"
-                  />
-
-                  <input
-                    type="date"
-                    value={emi.dueDate}
-                    onChange={(e) => {
-                      const newEmis = [
-                        ...(studentEmis[searchResult._id] || []),
-                      ];
-
-                      newEmis[index].dueDate = e.target.value;
-
-                      setStudentEmis((prev) => ({
-                        ...prev,
-
-                        [searchResult._id]: newEmis,
-                      }));
-                    }}
-                    className="px-2 py-1 rounded text-sm"
-                  />
-
-                  <button
-                    onClick={() => {
-                      const newEmis = (
-                        studentEmis[searchResult._id] || []
-                      ).filter((_, i) => i !== index);
-
-                      setStudentEmis((prev) => ({
-                        ...prev,
-
-                        [searchResult._id]: newEmis,
-                      }));
-                    }}
-                    className="text-red-400 text-xs"
-                  >
-                    Delete
-                  </button>
-                </div>
-              ))}
-
-              <div className="flex gap-2">
-                <button
-                  onClick={() =>
-                    setStudentEmis((prev) => ({
-                      ...prev,
-
-                      [searchResult._id]: [
-                        ...(prev[searchResult._id] || []),
-
-                        { amount: "", dueDate: "" },
-                      ],
-                    }))
-                  }
-                  className="bg-indigo-500 text-white px-2 py-1 text-xs rounded"
-                >
-                  + Add EMI
-                </button>
-
-                <button
-                  onClick={() => confirmEmi(searchResult._id)}
-                  className="bg-green-600 text-white px-2 py-1 text-xs rounded"
-                >
-                  Confirm
-                </button>
-
-                <button
-                  onClick={() => setEmiInputId(null)}
-                  className="bg-gray-400 text-white px-2 py-1 text-xs rounded"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* 🔹 Two-column layout */}
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Campus Info */}
-            <div className="p-4 border rounded-lg bg-indigo-50">
-              <h3 className="font-semibold text-lg mb-2">Campus Info</h3>
-              <p>
-                <strong>Campus:</strong> {searchResult.campusInfo.campus}
-              </p>
-              <p>
-                <strong>Course:</strong> {searchResult.campusInfo.course}
-              </p>
-              <p>
-                <strong>Duration:</strong> {searchResult.campusInfo.duration}
-              </p>
-            </div>
-
-            {/* Student Details */}
-            <div className="p-4 border rounded-lg bg-yellow-50">
-              <h3 className="font-semibold text-lg mb-2">Student Details</h3>
-              <p>
-                <strong>DOB:</strong>{" "}
-                {new Date(searchResult.studentDetails.dob).toLocaleDateString(
-                  "en-GB",
-                )}
-              </p>
-              <p>
-                <strong>Gender:</strong> {searchResult.studentDetails.gender}
-              </p>
-              <p>
-                <strong>Caste:</strong> {searchResult.studentDetails.caste}
-              </p>
-              <p>
-                <strong>Aadhaar:</strong> {searchResult.studentDetails.aadhaar}
-              </p>
-              <p>
-                <strong>Contact:</strong> {searchResult.studentDetails.contact}
-              </p>
-              <p>
-                <strong>Email:</strong> {searchResult.studentDetails.email}
-              </p>
-              <p>
-                <strong>Address:</strong> {searchResult.studentDetails.address}
-              </p>
-            </div>
-
-            {/* Parent Details */}
-            <div className="p-4 border rounded-lg bg-green-50">
-              <h3 className="font-semibold text-lg mb-2">Parent Details</h3>
-              <p>
-                <strong>Father:</strong> {searchResult.parentDetails.fatherName}{" "}
-                - Service
-              </p>
-              <p>
-                <strong>Father Phone:</strong>{" "}
-                {searchResult.parentDetails.fatherPhone}
-              </p>
-              <p>
-                <strong>Mother:</strong> {searchResult.parentDetails.motherName}{" "}
-                - Service
-              </p>
-              <p>
-                <strong>Mother Phone:</strong>{" "}
-                {searchResult.parentDetails.motherPhone}
-              </p>
-            </div>
-
-            {/* Guardian Details */}
-            {searchResult.guardian &&
-              Object.keys(searchResult.guardian).length > 0 && (
-                <div className="p-4 border rounded-lg bg-pink-50">
-                  <h3 className="font-semibold text-lg mb-2">Guardian</h3>
-                  {Object.entries(searchResult.guardian).map(([key, value]) => (
-                    <p key={key}>
-                      <strong>{key}:</strong> {value}
-                    </p>
-                  ))}
-                </div>
-              )}
+        {/* 🔹 DETAILS GRID */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Campus */}
+          <div className="p-4 border rounded-lg bg-indigo-50">
+            <h3 className="font-semibold text-lg mb-2">Campus Info</h3>
+            <p><strong>Campus:</strong> {app.campusInfo.campus}</p>
+            <p><strong>Course:</strong> {app.campusInfo.course}</p>
+            <p><strong>Duration:</strong> {app.campusInfo.duration}</p>
           </div>
 
-          {/* 🔹 Documents Grid */}
-          <div>
-            <h3 className="font-semibold text-lg mb-3">Documents</h3>
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {searchResult.documents.photo && (
-                <div className="border rounded p-2 text-center">
-                  <strong className="block mb-1">Photo</strong>
-                  <img
-                    src={`${API_BASE_URL}/uploads/${searchResult.documents.photo}`}
-                    alt="Photo"
-                    className="w-full h-32 object-cover rounded"
-                  />
-                </div>
-              )}
-              {searchResult.documents.aadhaarFile && (
-                <div className="border rounded p-2 text-center">
-                  <strong className="block mb-1">Aadhaar</strong>
-                  <img
-                    src={`${API_BASE_URL}/uploads/${searchResult.documents.aadhaarFile}`}
-                    alt="Aadhaar"
-                    className="w-full h-32 object-cover rounded"
-                  />
-                </div>
-              )}
-              {searchResult.documents.tenthMarksheet && (
-                <div className="border rounded p-2 text-center">
-                  <strong className="block mb-1">10th Marksheet</strong>
-                  <img
-                    src={`${API_BASE_URL}/uploads/${searchResult.documents.tenthMarksheet}`}
-                    alt="10th Marksheet"
-                    className="w-full h-32 object-cover rounded"
-                  />
-                </div>
-              )}
-              {searchResult.documents.twelfthMarksheet && (
-                <div className="border rounded p-2 text-center">
-                  <strong className="block mb-1">12th Marksheet</strong>
-                  <img
-                    src={`${API_BASE_URL}/uploads/${searchResult.documents.twelfthMarksheet}`}
-                    alt="12th Marksheet"
-                    className="w-full h-32 object-cover rounded"
-                  />
-                </div>
-              )}
-              {searchResult.documents.graduation && (
-                <div className="border rounded p-2 text-center">
-                  <strong className="block mb-1">Graduation</strong>
-                  <img
-                    src={`${API_BASE_URL}/uploads/${searchResult.documents.graduation}`}
-                    alt="Graduation"
-                    className="w-full h-32 object-cover rounded"
-                  />
-                </div>
-              )}
-              {searchResult.documents.postGraduation && (
-                <div className="border rounded p-2 text-center">
-                  <strong className="block mb-1">Post Graduation</strong>
-                  <img
-                    src={`${API_BASE_URL}/uploads/${searchResult.documents.postGraduation}`}
-                    alt="Post Graduation"
-                    className="w-full h-32 object-cover rounded"
-                  />
-                </div>
-              )}
-            </div>
+          {/* Student */}
+          <div className="p-4 border rounded-lg bg-yellow-50">
+            <h3 className="font-semibold text-lg mb-2">Student Details</h3>
+            <p><strong>DOB:</strong> {new Date(app.studentDetails.dob).toLocaleDateString("en-GB")}</p>
+            <p><strong>Gender:</strong> {app.studentDetails.gender}</p>
+            <p><strong>Caste:</strong> {app.studentDetails.caste}</p>
+            <p><strong>Aadhaar:</strong> {app.studentDetails.aadhaar}</p>
+            <p><strong>Contact:</strong> {app.studentDetails.contact}</p>
+            <p><strong>Email:</strong> {app.studentDetails.email}</p>
+            <p><strong>Address:</strong> {app.studentDetails.address}</p>
           </div>
         </div>
-      )}
+
+        {/* 🔹 DOCUMENTS */}
+        <div>
+          <h3 className="font-semibold text-lg mb-3">Documents</h3>
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {app.documents?.photo && (
+              <img
+                src={`${API_BASE_URL}/uploads/${app.documents.photo}`}
+                className="w-full h-32 object-cover rounded"
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
+
 
       {/* GRID */}
       <div className="grid gap-6 md:grid-cols-3">
