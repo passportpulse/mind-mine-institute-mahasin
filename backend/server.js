@@ -6,6 +6,11 @@ const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
+// ✅ DEBUG LOGGER (ADD HERE)
+app.use((req, res, next) => {
+  console.log("Incoming Request:", req.method, req.url);
+  next();
+});
 
 // ✅ Create uploads folder if not exists
 const uploadDir = path.join(__dirname, "uploads");
