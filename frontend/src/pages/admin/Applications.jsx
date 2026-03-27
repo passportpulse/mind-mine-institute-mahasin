@@ -110,23 +110,6 @@ const Applications = () => {
     }));
   };
 
-  // Add new EMI row
-  const addEmiRow = () => {
-    setEmis((prev) => [...prev, { amount: "", dueDate: "" }]);
-  };
-
-  // Update EMI row
-  const updateEmi = (index, key, value) => {
-    setEmis((prev) =>
-      prev.map((e, i) => (i === index ? { ...e, [key]: value } : e)),
-    );
-  };
-
-  // Delete EMI row
-  const deleteEmi = (index) => {
-    setEmis((prev) => prev.filter((_, i) => i !== index));
-  };
-
   // Confirm EMI
   const confirmEmi = async (id) => {
     try {
@@ -151,6 +134,7 @@ const Applications = () => {
 
       // ✅ keep EMI visible (DON'T clear)
       setEmiInputId(null);
+      fetchApps();
     } catch (err) {
       console.error("Error saving EMI:", err);
     }
@@ -530,14 +514,28 @@ const Applications = () => {
                           className="w-32 px-2 py-1 rounded text-sm"
                         />
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             const newEmis = (studentEmis[app._id] || []).filter(
                               (_, i) => i !== index,
                             );
+
                             setStudentEmis((prev) => ({
                               ...prev,
                               [app._id]: newEmis,
                             }));
+
+                            try {
+                              await fetch(
+                                `${API_BASE_URL}/applications/${app._id}/emi`,
+                                {
+                                  method: "PATCH",
+                                  headers: getAdminHeaders(),
+                                  body: JSON.stringify({ emis: newEmis }),
+                                },
+                              );
+                            } catch (err) {
+                              console.error("Delete EMI error:", err);
+                            }
                           }}
                           className="text-red-500 text-xs font-bold px-2"
                         >
@@ -599,29 +597,6 @@ const Applications = () => {
                               })()
                             : ""}
                         </span>
-                        <button
-                          onClick={() => {
-                            // edit just opens the overlay again
-                            setEmiInputId(app._id);
-                          }}
-                          className="text-blue-600 text-xs font-bold"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => {
-                            const newEmis = (studentEmis[app._id] || []).filter(
-                              (_, idx) => idx !== i,
-                            );
-                            setStudentEmis((prev) => ({
-                              ...prev,
-                              [app._id]: newEmis,
-                            }));
-                          }}
-                          className="text-red-600 text-xs font-bold"
-                        >
-                          Delete
-                        </button>
                       </div>
                     ))}
                   </div>
