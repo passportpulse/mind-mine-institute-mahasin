@@ -190,7 +190,7 @@ exports.getApplicationByTrackingId = async (req, res) => {
     const { trackingId } = req.params;
 
     // Look for the trackingId in the database
-    const application = await Application.find({ trackingId });
+    const application = await Application.findOne({ trackingId });
 
     if (!application) {
       return res.status(404).json({
