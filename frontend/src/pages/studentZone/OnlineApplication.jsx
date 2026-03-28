@@ -62,7 +62,18 @@ const OnlineApplication = () => {
   const handleFileChange = (field, file) => {
     if (!file) return;
 
-    // Max 2MB
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/jpg",
+      "application/pdf",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      alert("Only JPG, PNG, or PDF allowed");
+      return;
+    }
+
     if (file.size > 2 * 1024 * 1024) {
       alert("File size must be less than 2MB");
       return;
@@ -886,9 +897,24 @@ const OnlineApplication = () => {
 
                   {/* File Name Preview */}
                   {formData.documents?.[doc.name] && (
-                    <p className="text-xs text-green-600 font-medium mt-1 truncate">
-                      ✔ {formData.documents[doc.name].name}
-                    </p>
+                    <>
+                      <p className="text-xs text-green-600 font-medium mt-1 truncate">
+                        ✔ {formData.documents[doc.name].name}
+                      </p>
+
+                      {/* 🔥 Image Preview (only for image files) */}
+                      {formData.documents[doc.name].type.startsWith(
+                        "image/",
+                      ) && (
+                        <img
+                          src={URL.createObjectURL(
+                            formData.documents[doc.name],
+                          )}
+                          alt="preview"
+                          className="mt-2 h-20 rounded border"
+                        />
+                      )}
+                    </>
                   )}
 
                   {/* ❗ Error Message */}
