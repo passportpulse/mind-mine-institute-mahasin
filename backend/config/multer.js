@@ -6,8 +6,9 @@ const cloudinary = require("./cloudinary");
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: "mindmine-institute/students/documents", 
-   allowed_formats: ["jpg", "png", "jpeg", "pdf"]
+    folder: "mindmine-institute/students/documents",
+    allowed_formats: ["jpg", "png", "jpeg", "pdf", "webp", "avif"],
+    format: "jpg",
   },
 });
 

@@ -66,6 +66,8 @@ const OnlineApplication = () => {
       "image/jpeg",
       "image/png",
       "image/jpg",
+      "image/webp",
+      "image/avif",
       "application/pdf",
     ];
 
