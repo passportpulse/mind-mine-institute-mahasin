@@ -210,6 +210,8 @@ const OnlineApplication = () => {
 
         if (!res.ok) {
           // This catches 400 (Validation) or 500 (Server) errors from your controller
+          console.log("SERVER RESPONSE:", responseData);
+
           throw new Error(
             responseData.message || "Submission failed on server.",
           );

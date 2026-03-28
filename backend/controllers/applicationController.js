@@ -64,11 +64,9 @@ exports.createApplication = async (req, res) => {
       !parentDetails.motherName ||
       !parentDetails.motherPhone
     ) {
-      return res
-        .status(400)
-        .json({
-          message: "Father and Mother details (Name & Phone) are required",
-        });
+      return res.status(400).json({
+        message: "Father and Mother details (Name & Phone) are required",
+      });
     }
 
     // Section 4: Document Verification (Mandatory ones per schema)
@@ -86,15 +84,13 @@ exports.createApplication = async (req, res) => {
       }
     }
 
-    // ✅ PREPARE DOCUMENT PATHS/FILENAMES
     const documents = {
-      aadhaarFile: files.aadhaarFile[0].filename,
-      photo: files.photo[0].filename,
-      tenthMarksheet: files.tenthMarksheet[0].filename,
-      twelfthMarksheet: files.twelfthMarksheet[0].filename,
-      // Optional fields use optional chaining
-      graduation: files.graduation?.[0]?.filename || "",
-      postGraduation: files.postGraduation?.[0]?.filename || "",
+      aadhaarFile: files.aadhaarFile[0].path,
+      photo: files.photo[0].path,
+      tenthMarksheet: files.tenthMarksheet[0].path,
+      twelfthMarksheet: files.twelfthMarksheet[0].path,
+      graduation: files.graduation?.[0]?.path || "",
+      postGraduation: files.postGraduation?.[0]?.path || "",
     };
 
     // 🔥 GENERATE TRACKING ID
@@ -123,11 +119,9 @@ exports.createApplication = async (req, res) => {
 
     // Handle Mongoose Duplicate Key Error (for trackingId)
     if (error.code === 11000) {
-      return res
-        .status(409)
-        .json({
-          message: "Duplicate tracking ID generated. Please try again.",
-        });
+      return res.status(409).json({
+        message: "Duplicate tracking ID generated. Please try again.",
+      });
     }
 
     return res.status(500).json({
@@ -230,7 +224,9 @@ exports.getApplicationByPhone = async (req, res) => {
     }
 
     // Look for the phone number in studentDetails.contact
-    const application = await Application.find({ "studentDetails.contact": phone });
+    const application = await Application.find({
+      "studentDetails.contact": phone,
+    });
 
     if (!application) {
       return res.status(404).json({
@@ -257,7 +253,7 @@ exports.updateEmis = async (req, res) => {
 
   try {
     const application = await Application.findById(id);
-    if (!application)
+    if (!application || application.length === 0)
       return res.status(404).json({ message: "Application not found" });
 
     // 🔥 REPLACE entire EMI array
