@@ -38,7 +38,7 @@ const ApplicationCard = ({
           <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center overflow-hidden border border-indigo-100">
             {app.documents?.photo ? (
               <img
-                src={`${API_BASE_URL.replace("/api", "")}/uploads/${app.documents.photo}`}
+                src={app.documents.photo}
                 className="w-full h-full object-cover"
                 alt=""
               />
@@ -142,9 +142,9 @@ const ApplicationCard = ({
               <div className="grid grid-cols-3 gap-2">
                 {["photo", "aadhaarFile", "tenthMarksheet", "twelfthMarksheet"].map((key) => 
                   app.documents?.[key] && (
-                    <a key={key} href={`${API_BASE_URL.replace("/api", "")}/uploads/${app.documents[key]}`} target="_blank" rel="noreferrer" className="group flex flex-col items-center p-1 bg-white border border-slate-100 rounded-lg">
+                    <a key={key} href={app.documents[key]} target="_blank" rel="noreferrer" className="group flex flex-col items-center p-1 bg-white border border-slate-100 rounded-lg">
                       <div className="w-full aspect-square bg-slate-100 rounded overflow-hidden">
-                         <img src={`${API_BASE_URL.replace("/api", "")}/uploads/${app.documents[key]}`} className="w-full h-full object-cover" alt="" />
+                         <img src={app.documents[key]} className="w-full h-full object-cover" alt="" />
                       </div>
                     </a>
                   )
