@@ -20,7 +20,9 @@ const Applications = () => {
   const fetchApps = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/applications`, { headers: getAdminHeaders() });
+      const res = await fetch(`${API_BASE_URL}/applications`, {
+        headers: getAdminHeaders(),
+      });
       const data = await res.json();
       setApps(data.data || []);
     } catch (err) {
@@ -30,16 +32,25 @@ const Applications = () => {
     }
   };
 
-  useEffect(() => { fetchApps(); }, [branch]);
+  useEffect(() => {
+    fetchApps();
+  }, [branch]);
 
-  const filteredApps = branch ? apps.filter((app) => app.campusInfo.campus === branch) : apps;
+  const filteredApps = branch
+    ? apps.filter((app) => app.campusInfo.campus === branch)
+    : apps;
 
   const toggleExpand = (id) => {
-    setExpandedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    setExpandedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+    );
   };
 
   const updateStatus = async (id, status) => {
-    if (status === "approved") { setFeeInputId(id); return; }
+    if (status === "approved") {
+      setFeeInputId(id);
+      return;
+    }
     try {
       await fetch(`${API_BASE_URL}/applications/${id}`, {
         method: "PATCH",
@@ -47,7 +58,9 @@ const Applications = () => {
         body: JSON.stringify({ status }),
       });
       fetchApps();
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const submitFees = async (id) => {
@@ -55,16 +68,24 @@ const Applications = () => {
       await fetch(`${API_BASE_URL}/applications/${id}`, {
         method: "PATCH",
         headers: getAdminHeaders(),
-        body: JSON.stringify({ status: "approved", fees: Number(feeValue), applicationId: applicationIdValue }),
+        body: JSON.stringify({
+          status: "approved",
+          fees: Number(feeValue),
+          applicationId: applicationIdValue,
+        }),
       });
-      setFeeInputId(null); setFeeValue(""); setApplicationIdValue("");
+      setFeeInputId(null);
+      setFeeValue("");
+      setApplicationIdValue("");
       fetchApps();
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const openEmiOverlay = (id, existingEmis) => {
     setEmiInputId(id);
-    setStudentEmis(prev => ({
+    setStudentEmis((prev) => ({
       ...prev,
       [id]: prev[id]?.length ? prev[id] : existingEmis || [],
     }));
@@ -81,14 +102,19 @@ const Applications = () => {
       if (!res.ok) throw new Error("Failed to save");
       setEmiInputId(null);
       fetchApps();
-    } catch (err) { console.error("EMI Error:", err); }
+    } catch (err) {
+      console.error("EMI Error:", err);
+    }
   };
 
   const getStatusStyle = (status) => {
     switch (status) {
-      case "approved": return "bg-green-100 text-green-700 border-green-200";
-      case "rejected": return "bg-red-100 text-red-700 border-red-200";
-      default: return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "approved":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "rejected":
+        return "bg-red-100 text-red-700 border-red-200";
+      default:
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
     }
   };
 
@@ -97,17 +123,25 @@ const Applications = () => {
       {/* Header section remains the same as your original code */}
       <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div className="flex flex-col gap-2">
-          <h2 className="text-3xl font-black text-slate-800">Admin Panel</h2>
-          <p className="text-slate-500 text-sm">Review student enrollment applications</p>
+          <h2 className="text-2xl font-bold text-slate-800">Applications</h2>
+          <p className="text-slate-500 text-sm">
+            Review student enrollment applications
+          </p>
         </div>
         <div className="text-right">
-          <span className="block text-3xl font-extrabold text-indigo-600 leading-none">{filteredApps.length}</span>
-          <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Total Applications</p>
+          <span className="block text-3xl font-extrabold text-indigo-600 leading-none">
+            {filteredApps.length}
+          </span>
+          <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
+            Total Applications
+          </p>
         </div>
       </div>
 
       {loading ? (
-        <div className="flex justify-center p-20 animate-pulse text-slate-400 font-bold">Loading Data...</div>
+        <div className="flex justify-center p-20 animate-pulse text-slate-400 font-bold">
+          Loading Data...
+        </div>
       ) : (
         <div className="space-y-6">
           {filteredApps.map((app) => (

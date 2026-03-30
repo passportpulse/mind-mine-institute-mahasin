@@ -18,7 +18,7 @@ const AdminLayout = () => {
           <img src="/logo.png" alt="Mindmine" className="w-10 h-10" />
           <div>
             <p className="text-xl font-bold">
-              Admin <span className="text-indigo-600">Panel</span>
+              Admin
             </p>
           </div>
         </NavLink>

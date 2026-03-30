@@ -226,7 +226,7 @@ const Navbar = () => {
           </div>
           {/* Admin Zone */}
           <NavLink to="/admin/dashboard" className={linkClass}>
-            Admin Panel
+            Admin
           </NavLink>
 
           {/* STUDENT ZONE */}
