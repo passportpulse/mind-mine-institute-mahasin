@@ -1,11 +1,11 @@
-const express = require("express");
-const router = express.Router();
 const {
   createEnquiry,
   getAllEnquiries,
+  updateEnquiryStatus, 
 } = require("../controllers/enquiryController");
 
-router.post("/", createEnquiry);     // frontend submit
-router.get("/", getAllEnquiries);    // admin panel
+router.post("/", createEnquiry);
+router.get("/", getAllEnquiries);
 
-module.exports = router;
+// ✅ NEW ROUTE
+router.patch("/:id/status", updateEnquiryStatus);

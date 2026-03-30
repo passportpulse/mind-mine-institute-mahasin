@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
 const AdminLayout = () => {
   const navigate = useNavigate();
@@ -12,7 +12,16 @@ const AdminLayout = () => {
     <div className="flex min-h-screen">
       {/* Sidebar */}
       <div className="w-64 p-6 text-white bg-gray-900">
-        <h2 className="mb-6 text-xl font-bold">Admin Panel</h2>
+        {/* <h2 className="mb-6 text-xl font-bold">Admin Panel</h2> */}
+        {/* LOGO */}
+        <NavLink to="/" className="flex items-center gap-3 mb-6">
+          <img src="/logo.png" alt="Mindmine" className="w-10 h-10" />
+          <div>
+            <p className="text-xl font-bold">
+              Admin <span className="text-indigo-600">Panel</span>
+            </p>
+          </div>
+        </NavLink>
 
         <button
           onClick={() => navigate("/admin/dashboard")}

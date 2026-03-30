@@ -11,12 +11,42 @@ exports.createEnquiry = async (req, res) => {
   }
 };
 
-// GET all enquiries (Admin)
 exports.getAllEnquiries = async (req, res) => {
   try {
-    const enquiries = await Enquiry.find().sort({ createdAt: -1 });
+    const { status } = req.query;
+
+    let filter = {};
+    if (status) {
+      filter.status = status;
+    }
+
+    const enquiries = await Enquiry.find(filter).sort({ createdAt: -1 });
+
     res.json(enquiries);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
+// UPDATE STATUS
+exports.updateEnquiryStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const enquiry = await Enquiry.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
+
+    if (!enquiry) {
+      return res.status(404).json({ message: "Enquiry not found" });
+    }
+
+    res.json({ message: "Status updated", enquiry });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+

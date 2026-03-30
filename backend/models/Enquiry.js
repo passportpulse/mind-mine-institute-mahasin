@@ -7,8 +7,13 @@ const enquirySchema = new mongoose.Schema(
     phone: { type: String, required: true },
     courseCategory: { type: String, required: true },
     message: { type: String, required: true },
+    status: {
+      type: String,
+      enum: ["new", "connected", "junk", "admission", "followup"],
+      default: "new",
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("Enquiry", enquirySchema);
