@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { API_BASE_URL, getAdminHeaders } from "../../config/api";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import ApplicationCard from "../../components/admin/ApplicationCard";
+import FeesModal from "../../components/admin/FeesModal ";
 
 const Applications = () => {
   const [apps, setApps] = useState([]);
@@ -12,6 +13,7 @@ const Applications = () => {
   const [applicationIdValue, setApplicationIdValue] = useState("");
   const [emiInputId, setEmiInputId] = useState(null);
   const [studentEmis, setStudentEmis] = useState({});
+  const [feesModalApp, setFeesModalApp] = useState(null);
 
   const [searchParams] = useSearchParams();
   const branch = searchParams.get("branch");
@@ -165,8 +167,15 @@ const Applications = () => {
               studentEmis={studentEmis}
               setStudentEmis={setStudentEmis}
               confirmEmi={confirmEmi}
+              openFeesModal={setFeesModalApp}
             />
           ))}
+          {feesModalApp && (
+            <FeesModal
+              app={feesModalApp}
+              onClose={() => setFeesModalApp(null)}
+            />
+          )}
         </div>
       )}
     </div>

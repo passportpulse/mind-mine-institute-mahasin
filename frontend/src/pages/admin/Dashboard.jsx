@@ -1,13 +1,29 @@
 import { useEffect, useState } from "react";
 import { API_BASE_URL, getAdminHeaders } from "../../config/api";
 import { useNavigate } from "react-router-dom";
-// 1. Import the component
-import ApplicationCard from "../../components/admin/ApplicationCard"; 
+import FeesModal from "../../components/admin/FeesModal ";
+import ApplicationCard from "../../components/admin/ApplicationCard";
+
 
 const branches = [
-  { name: "Bagnan Campus", key: "bagnan", accent: "border-indigo-500", badge: "bg-indigo-50 text-indigo-600" },
-  { name: "Moulali Campus", key: "moulali", accent: "border-pink-500", badge: "bg-pink-50 text-pink-600" },
-  { name: "Joka Campus", key: "joka", accent: "border-emerald-500", badge: "bg-emerald-50 text-emerald-600" },
+  {
+    name: "Bagnan Campus",
+    key: "bagnan",
+    accent: "border-indigo-500",
+    badge: "bg-indigo-50 text-indigo-600",
+  },
+  {
+    name: "Moulali Campus",
+    key: "moulali",
+    accent: "border-pink-500",
+    badge: "bg-pink-50 text-pink-600",
+  },
+  {
+    name: "Joka Campus",
+    key: "joka",
+    accent: "border-emerald-500",
+    badge: "bg-emerald-50 text-emerald-600",
+  },
 ];
 
 const Dashboard = () => {
@@ -16,7 +32,8 @@ const Dashboard = () => {
   const [searchValue, setSearchValue] = useState("");
   const [searchResult, setSearchResult] = useState([]);
   const [searchType, setSearchType] = useState("tracking");
-  
+  const [feesModalApp, setFeesModalApp] = useState(null);
+
   // States required for ApplicationCard
   const [feeInputId, setFeeInputId] = useState(null);
   const [feeValue, setFeeValue] = useState("");
@@ -31,9 +48,12 @@ const Dashboard = () => {
   // Helper for status styles used by the card
   const getStatusStyle = (status) => {
     switch (status) {
-      case "approved": return "bg-green-100 text-green-700 border-green-200";
-      case "rejected": return "bg-red-100 text-red-700 border-red-200";
-      default: return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "approved":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "rejected":
+        return "bg-red-100 text-red-700 border-red-200";
+      default:
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
     }
   };
 
@@ -54,7 +74,9 @@ const Dashboard = () => {
       localStorage.setItem("applications", JSON.stringify(apps));
       calculateStats(apps);
       setEnquiryCount(enqData.length || 0);
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const calculateStats = (apps) => {
@@ -82,8 +104,10 @@ const Dashboard = () => {
         headers: getAdminHeaders(),
         body: JSON.stringify({ status }),
       });
-      handleSearch(); 
-    } catch (err) { console.error(err); }
+      handleSearch();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const submitFees = async (id) => {
@@ -99,7 +123,9 @@ const Dashboard = () => {
       });
       setFeeInputId(null);
       handleSearch(); // Refresh to show new status
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const openEmiOverlay = (id, existingEmis) => {
@@ -120,13 +146,16 @@ const Dashboard = () => {
       });
       setEmiInputId(null);
       handleSearch();
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleSearch = async () => {
     if (!searchValue) return;
     try {
-      const endpoint = searchType === "tracking"
+      const endpoint =
+        searchType === "tracking"
           ? `${API_BASE_URL}/applications/status/${searchValue.trim()}`
           : `${API_BASE_URL}/applications/phone/${searchValue.trim()}`;
 
@@ -137,21 +166,27 @@ const Dashboard = () => {
       } else {
         setSearchResult([]);
       }
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <div className="p-6 md:p-10 bg-slate-50 min-h-screen">
       <div className="mb-10">
-        <h2 className="text-3xl font-bold text-slate-800">Admissions Dashboard</h2>
+        <h2 className="text-3xl font-bold text-slate-800">
+          Admissions Dashboard
+        </h2>
       </div>
 
       {/* SEARCH SECTION */}
       <div className="mb-8 flex flex-col md:flex-row gap-4">
-        <select 
-          value={searchType} 
+        <select
+          value={searchType}
           onChange={(e) => setSearchType(e.target.value)}
           className="border p-2 rounded-xl bg-white text-sm"
         >
@@ -165,7 +200,10 @@ const Dashboard = () => {
           placeholder="Search student..."
           className="border p-2 rounded-xl flex-1 text-sm"
         />
-        <button onClick={handleSearch} className="bg-indigo-600 text-white px-6 py-2 rounded-xl text-sm font-bold">
+        <button
+          onClick={handleSearch}
+          className="bg-indigo-600 text-white px-6 py-2 rounded-xl text-sm font-bold"
+        >
           Search
         </button>
       </div>
@@ -174,8 +212,15 @@ const Dashboard = () => {
       {searchResult && searchResult.length > 0 && (
         <div className="mb-12 space-y-4">
           <div className="flex justify-between items-center">
-             <h3 className="text-sm font-black uppercase text-slate-400">Search Results</h3>
-             <button onClick={() => setSearchResult([])} className="text-xs text-red-500 font-bold">Clear Results</button>
+            <h3 className="text-sm font-black uppercase text-slate-400">
+              Search Results
+            </h3>
+            <button
+              onClick={() => setSearchResult([])}
+              className="text-xs text-red-500 font-bold"
+            >
+              Clear Results
+            </button>
           </div>
           {searchResult.map((app) => (
             <ApplicationCard
@@ -200,25 +245,52 @@ const Dashboard = () => {
               studentEmis={studentEmis}
               setStudentEmis={setStudentEmis}
               confirmEmi={confirmEmi}
+              openFeesModal={setFeesModalApp}
             />
           ))}
+          {feesModalApp && (
+            <FeesModal
+              app={feesModalApp}
+              onClose={() => setFeesModalApp(null)}
+            />
+          )}
         </div>
       )}
 
       {/* BRANCH GRID */}
       <div className="grid gap-6 md:grid-cols-3">
         {branches.map((branch) => {
-          const stats = branchStats[branch.key] || { total: 0, approved: 0, pending: 0, rejected: 0 };
+          const stats = branchStats[branch.key] || {
+            total: 0,
+            approved: 0,
+            pending: 0,
+            rejected: 0,
+          };
           return (
-            <div key={branch.key} onClick={() => navigate(`/admin/applications?branch=${branch.name}`)}
-              className={`bg-white border ${branch.accent} border-l-4 rounded-2xl p-6 cursor-pointer hover:shadow-lg transition-all`}>
-              <h3 className="text-lg font-semibold text-slate-700 mb-4">{branch.name}</h3>
+            <div
+              key={branch.key}
+              onClick={() =>
+                navigate(`/admin/applications?branch=${branch.name}`)
+              }
+              className={`bg-white border ${branch.accent} border-l-4 rounded-2xl p-6 cursor-pointer hover:shadow-lg transition-all`}
+            >
+              <h3 className="text-lg font-semibold text-slate-700 mb-4">
+                {branch.name}
+              </h3>
               <p className="text-sm text-slate-400">Total Applications</p>
-              <p className="text-3xl font-bold text-slate-900 mb-4">{stats.total}</p>
+              <p className="text-3xl font-bold text-slate-900 mb-4">
+                {stats.total}
+              </p>
               <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="bg-green-50 p-2 rounded-lg text-green-600 font-bold">{stats.approved}</div>
-                <div className="bg-yellow-50 p-2 rounded-lg text-yellow-600 font-bold">{stats.pending}</div>
-                <div className="bg-red-50 p-2 rounded-lg text-red-600 font-bold">{stats.rejected}</div>
+                <div className="bg-green-50 p-2 rounded-lg text-green-600 font-bold">
+                  {stats.approved}
+                </div>
+                <div className="bg-yellow-50 p-2 rounded-lg text-yellow-600 font-bold">
+                  {stats.pending}
+                </div>
+                <div className="bg-red-50 p-2 rounded-lg text-red-600 font-bold">
+                  {stats.rejected}
+                </div>
               </div>
             </div>
           );

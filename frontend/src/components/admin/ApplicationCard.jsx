@@ -1,6 +1,3 @@
-import React from "react";
-import { API_BASE_URL } from "../../config/api";
-
 const ApplicationCard = ({
   app,
   isExpanded,
@@ -20,6 +17,7 @@ const ApplicationCard = ({
   studentEmis,
   setStudentEmis,
   confirmEmi,
+  openFeesModal,
 }) => {
   // Safe access to EMI data to prevent crash
   const currentEmis = studentEmis[app._id] || app.emis || [];
@@ -37,63 +35,82 @@ const ApplicationCard = ({
     { key: "graduation", label: "Graduation" }, // ✅ added
     { key: "postGraduation", label: "Post Grad" }, // ✅ added
   ];
+  const totalFees = app.fees || 0;
+  const emis = app.emis || [];
+
+  const totalEmiAmount = emis.reduce(
+    (sum, emi) => sum + Number(emi.amount || 0),
+    0,
+  );
+
+  // OPTIONAL: if you store paid status
+  const paidAmount = emis
+    .filter((e) => e.status === "paid")
+    .reduce((sum, emi) => sum + Number(emi.amount || 0), 0);
+
+  const dueAmount = totalFees - paidAmount;
 
   return (
     <div className="bg-white shadow-sm border border-slate-200 rounded-3xl overflow-hidden">
-     {/* --- COMPACT SUMMARY HEADER --- */}
-<div className="p-5 grid grid-cols-1 md:grid-cols-12 items-center gap-4">
-  
-  {/* 1. Profile & Name (Fixed Span) */}
-  <div className="md:col-span-5 flex items-center gap-4 min-w-0">
-    <div className="w-12 h-12 flex-shrink-0 rounded-lg bg-indigo-50 flex items-center justify-center overflow-hidden border border-indigo-100">
-      {app.documents?.photo ? (
-        <img src={app.documents.photo} className="w-full h-full object-cover" alt="" />
-      ) : (
-        <span className="text-indigo-300 font-bold">?</span>
-      )}
-    </div>
-    <div className="min-w-0">
-      <h3 className="font-bold text-lg text-slate-900 leading-none truncate">
-        {app.studentDetails?.fullName}
-      </h3>
-      <p className="text-indigo-600 text-xs font-bold mt-1 uppercase tracking-tight truncate">
-        {app.campusInfo?.course}
-      </p>
-      <p className="text-[10px] font-mono text-slate-400 mt-1">
-        {app.trackingId}
-      </p>
-    </div>
-  </div>
+      {/* --- COMPACT SUMMARY HEADER --- */}
+      <div className="p-5 grid grid-cols-1 md:grid-cols-12 items-center gap-4">
+        {/* 1. Profile & Name (Fixed Span) */}
+        <div className="md:col-span-5 flex items-center gap-4 min-w-0">
+          <div className="w-12 h-12 flex-shrink-0 rounded-lg bg-indigo-50 flex items-center justify-center overflow-hidden border border-indigo-100">
+            {app.documents?.photo ? (
+              <img
+                src={app.documents.photo}
+                className="w-full h-full object-cover"
+                alt=""
+              />
+            ) : (
+              <span className="text-indigo-300 font-bold">?</span>
+            )}
+          </div>
+          <div className="min-w-0">
+            <h3 className="font-bold text-lg text-slate-900 leading-none truncate">
+              {app.studentDetails?.fullName}
+            </h3>
+            <p className="text-indigo-600 text-xs font-bold mt-1 uppercase tracking-tight truncate">
+              {app.campusInfo?.course}
+            </p>
+            <p className="text-[10px] font-mono text-slate-400 mt-1">
+              {app.trackingId}
+            </p>
+          </div>
+        </div>
 
-  {/* 2. Status & Details (Fixed Center-Right Span) */}
-  <div className="md:col-span-5 flex items-center gap-2 flex-wrap md:justify-end">
-    <div className={`px-3 py-1 rounded-full border text-[10px] font-black uppercase whitespace-nowrap ${getStatusStyle(app.status)}`}>
-      {app.status}
-    </div>
-    
-    {/* Fixed width containers for ID and Fees so they don't jump */}
-    {app.status === "approved" && app.applicationId && (
-      <div className="px-3 py-1 rounded-full bg-green-50 text-green-700 text-[10px] font-bold border border-green-200 whitespace-nowrap">
-        ID: {app.applicationId}
-      </div>
-    )}
-    {app.status === "approved" && app.fees && (
-      <div className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-200 whitespace-nowrap">
-        ₹ {app.fees}
-      </div>
-    )}
-  </div>
+        {/* 2. Status & Details (Fixed Center-Right Span) */}
+        <div className="md:col-span-5 flex items-center gap-2 flex-wrap md:justify-end">
+          <div
+            className={`px-3 py-1 rounded-full border text-[10px] font-black uppercase whitespace-nowrap ${getStatusStyle(app.status)}`}
+          >
+            {app.status}
+          </div>
 
-  {/* 3. Action Button (Fixed End Span) */}
-  <div className="md:col-span-2 flex justify-end">
-    <button
-      onClick={() => onToggle(app._id)}
-      className="w-full md:w-auto bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold transition-all text-center"
-    >
-      {isExpanded ? "Collapse" : "Full Review"}
-    </button>
-  </div>
-</div>
+          {/* Fixed width containers for ID and Fees so they don't jump */}
+          {app.status === "approved" && app.applicationId && (
+            <div className="px-3 py-1 rounded-full bg-green-50 text-green-700 text-[10px] font-bold border border-green-200 whitespace-nowrap">
+              ID: {app.applicationId}
+            </div>
+          )}
+          {app.status === "approved" && app.fees && (
+            <div className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-200 whitespace-nowrap">
+              ₹ {app.fees}
+            </div>
+          )}
+        </div>
+
+        {/* 3. Action Button (Fixed End Span) */}
+        <div className="md:col-span-2 flex justify-end">
+          <button
+            onClick={() => onToggle(app._id)}
+            className="w-full md:w-auto bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold transition-all text-center"
+          >
+            {isExpanded ? "Collapse" : "Full Review"}
+          </button>
+        </div>
+      </div>
 
       {/* --- DETAILED VIEW --- */}
       {isExpanded && (
@@ -241,7 +258,14 @@ const ApplicationCard = ({
 
           <div className="mt-4 pt-5 border-t border-slate-100 flex gap-3">
             <button
-              onClick={() => onUpdateStatus(app._id, "approved")}
+              onClick={() => {
+                onUpdateStatus(app._id, "approved");
+                setFeeInputId(app._id);
+
+                // ✅ PRE-FILL VALUES
+                setFeeValue(app.fees || "");
+                setApplicationIdValue(app.applicationId || "");
+              }}
               className="px-6 py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-indigo-600 transition-colors"
             >
               Approve & Set Fees
@@ -253,6 +277,18 @@ const ApplicationCard = ({
             >
               Set EMI
             </button>
+            <button
+              onClick={() => openFeesModal(app)}
+              disabled={app.status !== "approved"}
+              className={`px-6 py-2.5 text-xs font-bold rounded-xl transition-colors ${
+                app.status !== "approved"
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-green-50 text-green-700 hover:bg-indigo-100"
+              }`}
+            >
+              Fees Summary
+            </button>
+
             <button
               onClick={() => onUpdateStatus(app._id, "rejected")}
               className="px-6 py-2.5 bg-red-50 text-red-600 text-xs font-bold rounded-xl hover:bg-red-100 transition-colors"
@@ -271,19 +307,21 @@ const ApplicationCard = ({
           </p>
           <div className="flex items-center gap-3">
             <input
-              type="number"
-              placeholder="Fees"
-              value={feeValue}
-              onChange={(e) => setFeeValue(e.target.value)}
-              className="bg-white px-2 py-1 rounded-xl text-sm w-32"
-            />
-            <input
-              type="text"
-              placeholder="Reg ID"
-              value={applicationIdValue}
-              onChange={(e) => setApplicationIdValue(e.target.value)}
-              className="bg-white px-2 py-1 rounded-xl text-sm w-40"
-            />
+  type="number"
+  placeholder="Fees"
+  value={feeValue}
+  onChange={(e) => setFeeValue(e.target.value)}
+  className="bg-white px-2 py-1 rounded-xl text-sm w-32"
+/>
+
+<input
+  type="text"
+  placeholder="Reg ID"
+  value={applicationIdValue}
+  onChange={(e) => setApplicationIdValue(e.target.value)}
+  className="bg-white px-2 py-1 rounded-xl text-sm w-40"
+/>
+
             <button
               onClick={() => setFeeInputId(null)}
               className="text-slate-400 text-xs font-bold px-3"
@@ -300,100 +338,99 @@ const ApplicationCard = ({
         </div>
       )}
 
-{/* EMI INPUT OVERLAY */}
-{emiInputId === app._id && (
-  <div className="p-4 bg-slate-900 flex flex-col gap-3">
-    <p className="text-white font-bold text-sm">Set Installments:</p>
+      {/* EMI INPUT OVERLAY */}
+      {emiInputId === app._id && (
+        <div className="p-4 bg-slate-900 flex flex-col gap-3">
+          <p className="text-white font-bold text-sm">Set Installments:</p>
 
-    {/* EMI ROWS (HORIZONTAL SCROLL) */}
-    <div className="flex gap-4 overflow-x-auto pb-2">
-      {currentEmis.map((emi, index) => (
-        <div
-          key={index}
-          className="flex items-center gap-2 bg-slate-800 px-3 py-2 rounded whitespace-nowrap"
-        >
-          <input
-            type="number"
-            placeholder="Amount"
-            value={emi.amount}
-            onChange={(e) => {
-              const newEmis = [...currentEmis];
-              newEmis[index] = {
-                ...newEmis[index],
-                amount: e.target.value,
-              };
-              setStudentEmis((prev) => ({
-                ...prev,
-                [app._id]: newEmis,
-              }));
-            }}
-            className="w-24 px-2 py-1 rounded text-sm"
-          />
+          {/* EMI ROWS (HORIZONTAL SCROLL) */}
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {currentEmis.map((emi, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-2 bg-slate-800 px-3 py-2 rounded whitespace-nowrap"
+              >
+                <input
+                  type="number"
+                  placeholder="Amount"
+                  value={emi.amount}
+                  onChange={(e) => {
+                    const newEmis = [...currentEmis];
+                    newEmis[index] = {
+                      ...newEmis[index],
+                      amount: e.target.value,
+                    };
+                    setStudentEmis((prev) => ({
+                      ...prev,
+                      [app._id]: newEmis,
+                    }));
+                  }}
+                  className="w-24 px-2 py-1 rounded text-sm"
+                />
 
-          <input
-            type="date"
-            value={emi.dueDate ? emi.dueDate.split("T")[0] : ""}
-            onChange={(e) => {
-              const newEmis = [...currentEmis];
-              newEmis[index] = {
-                ...newEmis[index],
-                dueDate: e.target.value,
-              };
-              setStudentEmis((prev) => ({
-                ...prev,
-                [app._id]: newEmis,
-              }));
-            }}
-            className="w-32 px-2 py-1 rounded text-sm"
-          />
+                <input
+                  type="date"
+                  value={emi.dueDate ? emi.dueDate.split("T")[0] : ""}
+                  onChange={(e) => {
+                    const newEmis = [...currentEmis];
+                    newEmis[index] = {
+                      ...newEmis[index],
+                      dueDate: e.target.value,
+                    };
+                    setStudentEmis((prev) => ({
+                      ...prev,
+                      [app._id]: newEmis,
+                    }));
+                  }}
+                  className="w-32 px-2 py-1 rounded text-sm"
+                />
 
-          <button
-            onClick={() => {
-              const newEmis = currentEmis.filter((_, i) => i !== index);
-              setStudentEmis((prev) => ({
-                ...prev,
-                [app._id]: newEmis,
-              }));
-            }}
-            className="text-red-500 text-xs font-bold"
-          >
-            Delete
-          </button>
+                <button
+                  onClick={() => {
+                    const newEmis = currentEmis.filter((_, i) => i !== index);
+                    setStudentEmis((prev) => ({
+                      ...prev,
+                      [app._id]: newEmis,
+                    }));
+                  }}
+                  className="text-red-500 text-xs font-bold"
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* ACTION BUTTONS */}
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={() =>
+                setStudentEmis((prev) => ({
+                  ...prev,
+                  [app._id]: [...currentEmis, { amount: "", dueDate: "" }],
+                }))
+              }
+              className="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded"
+            >
+              + Add EMI
+            </button>
+
+            <button
+              onClick={() => setEmiInputId(null)}
+              className="px-3 py-1 bg-gray-200 text-gray-700 text-xs font-bold rounded"
+            >
+              Close
+            </button>
+
+            <button
+              onClick={() => confirmEmi(app._id)}
+              className="px-3 py-1 bg-green-600 text-white text-xs font-bold rounded"
+            >
+              Save All
+            </button>
+          </div>
         </div>
-      ))}
-    </div>
-
-    {/* ACTION BUTTONS */}
-    <div className="flex gap-2 mt-2">
-      <button
-        onClick={() =>
-          setStudentEmis((prev) => ({
-            ...prev,
-            [app._id]: [...currentEmis, { amount: "", dueDate: "" }],
-          }))
-        }
-        className="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded"
-      >
-        + Add EMI
-      </button>
-
-      <button
-        onClick={() => setEmiInputId(null)}
-        className="px-3 py-1 bg-gray-200 text-gray-700 text-xs font-bold rounded"
-      >
-        Close
-      </button>
-
-      <button
-        onClick={() => confirmEmi(app._id)}
-        className="px-3 py-1 bg-green-600 text-white text-xs font-bold rounded"
-      >
-        Save All
-      </button>
-    </div>
-  </div>
-)}
-
+      )}
 
       {/* RENDER SAVED EMI DETAILS (READ ONLY) */}
       {!emiInputId && currentEmis.length > 0 && (
