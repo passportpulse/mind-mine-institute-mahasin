@@ -14,6 +14,8 @@ const Applications = () => {
   const [emiInputId, setEmiInputId] = useState(null);
   const [studentEmis, setStudentEmis] = useState({});
   const [feesModalApp, setFeesModalApp] = useState(null);
+  const [transactionId, setTransactionId] = useState("");
+
 
   const [searchParams] = useSearchParams();
   const branch = searchParams.get("branch");

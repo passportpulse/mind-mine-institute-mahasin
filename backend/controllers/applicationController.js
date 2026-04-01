@@ -188,6 +188,8 @@ exports.getApplicationByPhone = async (req, res) => {
 // ================= ADD PAYMENT =================
 exports.addPayment = async (req, res) => {
   try {
+    console.log("👉 PAYMENT BODY:", req.body);
+
     const { id } = req.params;
 
     const { amount, type, transactionId, date, emiIndex } = req.body;
@@ -258,6 +260,7 @@ exports.addPayment = async (req, res) => {
       data: app,
     });
   } catch (err) {
+    console.error("❌ ADD PAYMENT ERROR:", err);
     res.status(500).json({ message: "Server Error" });
   }
 };
