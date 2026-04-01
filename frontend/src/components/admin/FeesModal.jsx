@@ -25,6 +25,7 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
   // ✅ STATE
   const [amount, setAmount] = useState("");
   const [mode, setMode] = useState("cash");
+  const [transactionId, setTransactionId] = useState("");
 
   // ✅ ADD PAYMENT
   const handleAddPayment = () => {
@@ -39,13 +40,20 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
       return;
     }
 
+    if ((mode === "upi" || mode === "bank") && !transactionId) {
+      alert("Transaction ID required");
+      return;
+    }
+
     onAddPayment(app._id, {
       amount: numericAmount,
       type: mode,
+      transactionId,
       date: new Date(),
     });
 
     setAmount("");
+    setTransactionId("");
   };
 
   const handleMarkPaid = (emi, index) => {
@@ -82,9 +90,10 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
 
         {/* ✅ ADD PAYMENT */}
         <div className="border rounded-xl p-3 mb-5">
-          <p className="text-xs font-bold mb-2">Add Payment</p>
+          <p className="text-xs font-bold mb-2">Payment Recieved</p>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center flex-wrap">
+            {/* Amount */}
             <input
               type="number"
               placeholder="Amount"
@@ -93,15 +102,29 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
               className="border px-2 py-1 rounded text-sm w-32"
             />
 
+            {/* Mode */}
             <select
               value={mode}
               onChange={(e) => setMode(e.target.value)}
               className="border px-2 py-1 rounded text-sm"
             >
-              <option value="cash">Cash</option>
-              <option value="online">Online</option>
+              <option value="cash">Cash (Hand to Hand)</option>
+              <option value="upi">UPI</option>
+              <option value="bank">Bank Deposit</option>
             </select>
 
+            {/* ✅ Transaction ID (ONLY for UPI / Bank) */}
+            {mode !== "cash" && (
+              <input
+                type="text"
+                placeholder="Transaction ID"
+                value={transactionId}
+                onChange={(e) => setTransactionId(e.target.value)}
+                className="border px-2 py-1 rounded text-sm w-40"
+              />
+            )}
+
+            {/* Button */}
             <button
               onClick={handleAddPayment}
               disabled={dueAmount <= 0}
@@ -177,6 +200,8 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
               <span className="text-gray-500 capitalize">
                 {p.type === "emi" ? "EMI Payment" : p.type}
               </span>
+
+              <span className="text-gray-400">{p.transactionId || "-"}</span>
 
               <span className="text-gray-400">
                 {new Date(p.date).toLocaleDateString()}

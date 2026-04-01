@@ -5,8 +5,13 @@ const paymentSchema = new mongoose.Schema({
 
   type: {
     type: String,
-    enum: ["cash", "online", "emi"],
+    enum: ["cash", "upi", "bank", "emi"],
     default: "cash",
+  },
+  
+  transactionId: {
+    type: String,
+    default: "", // optional for cash
   },
 
   date: { type: Date, default: Date.now },
@@ -105,7 +110,7 @@ const applicationSchema = new mongoose.Schema(
     // ✅ include virtuals in API response
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 // ✅ VIRTUAL FIELD (not stored in DB)

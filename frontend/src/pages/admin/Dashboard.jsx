@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { API_BASE_URL, getAdminHeaders } from "../../config/api";
 import { useNavigate } from "react-router-dom";
-import FeesModal from "../../components/admin/FeesModal ";
+import FeesModal from "../../components/admin/FeesModal";
 import ApplicationCard from "../../components/admin/ApplicationCard";
 
 

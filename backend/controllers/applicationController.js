@@ -124,7 +124,7 @@ exports.updateApplication = async (req, res) => {
     const updated = await Application.findByIdAndUpdate(
       req.params.id,
       updateData,
-      { new: true }
+      { new: true },
     );
 
     res.json({ success: true, data: updated });
@@ -189,7 +189,8 @@ exports.getApplicationByPhone = async (req, res) => {
 exports.addPayment = async (req, res) => {
   try {
     const { id } = req.params;
-    let { amount, type = "cash", date, emiIndex } = req.body;
+
+    const { amount, type, transactionId, date, emiIndex } = req.body;
 
     amount = Number(amount);
 
@@ -204,12 +205,18 @@ exports.addPayment = async (req, res) => {
 
     const totalPaid = app.payments.reduce(
       (sum, p) => sum + Number(p.amount || 0),
-      0
+      0,
     );
 
     if (totalPaid + amount > app.fees) {
       return res.status(400).json({
         message: "Payment exceeds total fees",
+      });
+    }
+    // 🚨 Require transactionId for online modes
+    if ((type === "upi" || type === "bank") && !transactionId) {
+      return res.status(400).json({
+        message: "Transaction ID is required for UPI/Bank payments",
       });
     }
 
@@ -235,6 +242,7 @@ exports.addPayment = async (req, res) => {
     app.payments.push({
       amount,
       type,
+      transactionId: transactionId || "",
       date: date || new Date(),
       emiIndex,
     });
