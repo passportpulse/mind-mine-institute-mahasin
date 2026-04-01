@@ -10,7 +10,7 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
   // ✅ TOTAL PAID
   const paidAmount = payments.reduce(
     (sum, p) => sum + Number(p.amount || 0),
-    0
+    0,
   );
 
   const dueAmount = totalFees - paidAmount;
@@ -26,6 +26,9 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
   const [amount, setAmount] = useState("");
   const [mode, setMode] = useState("cash");
   const [transactionId, setTransactionId] = useState("");
+  const [editIndex, setEditIndex] = useState(null);
+  const [editAmount, setEditAmount] = useState("");
+  const [editTxn, setEditTxn] = useState("");
 
   // ✅ EMI PAYMENT STATE
   const [selectedEmiIndex, setSelectedEmiIndex] = useState(null);
@@ -86,13 +89,41 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
     setSelectedEmiIndex(null);
     setEmiTxnId("");
   };
+  const handleDeletePayment = async (index) => {
+    if (!confirm("Delete this payment?")) return;
+
+    const res = await fetch(`/api/applications/${app._id}/payment/${index}`, {
+      method: "DELETE",
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      onAddPayment(app._id, null, true); // 🔥 refresh parent
+    }
+  };
+  const handleUpdatePayment = async (index) => {
+    const res = await fetch(`/api/applications/${app._id}/payment/${index}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount: editAmount,
+        transactionId: editTxn,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setEditIndex(null);
+      onAddPayment(app._id, null, true); // 🔥 refresh
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      
       {/* 🔥 BIGGER MODAL */}
       <div className="bg-white w-[800px] max-h-[90vh] overflow-y-auto rounded-2xl p-6 shadow-xl relative">
-
         {/* ❌ CLOSE BUTTON */}
         <button
           onClick={onClose}
@@ -112,16 +143,12 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
 
           <div>
             <p className="text-gray-500 text-xs">Paid</p>
-            <p className="font-bold text-green-600 text-lg">
-              ₹ {paidAmount}
-            </p>
+            <p className="font-bold text-green-600 text-lg">₹ {paidAmount}</p>
           </div>
 
           <div>
             <p className="text-gray-500 text-xs">Due</p>
-            <p className="font-bold text-red-600 text-lg">
-              ₹ {dueAmount}
-            </p>
+            <p className="font-bold text-red-600 text-lg">₹ {dueAmount}</p>
           </div>
         </div>
 
@@ -177,7 +204,6 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
 
             return (
               <div key={index} className="border rounded-xl p-3">
-                
                 {/* ROW */}
                 <div className="flex justify-between items-center">
                   <div>
@@ -193,8 +219,8 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
                         status === "paid"
                           ? "bg-green-100 text-green-700"
                           : status === "overdue"
-                          ? "bg-red-100 text-red-600"
-                          : "bg-yellow-100 text-yellow-700"
+                            ? "bg-red-100 text-red-600"
+                            : "bg-yellow-100 text-yellow-700"
                       }`}
                     >
                       {status}
@@ -214,7 +240,6 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
                 {/* 🔥 EMI PAYMENT FORM */}
                 {selectedEmiIndex === index && (
                   <div className="mt-3 flex gap-2 flex-wrap items-center bg-gray-50 p-2 rounded">
-
                     <select
                       value={emiMode}
                       onChange={(e) => setEmiMode(e.target.value)}
@@ -265,35 +290,97 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
 
           {payments.length > 0 && (
             <div className="border rounded-xl overflow-hidden text-xs">
-
+              {/* HEADER */}
               <div className="grid grid-cols-6 bg-gray-100 font-bold px-3 py-2">
                 <span>Amount</span>
                 <span>Mode</span>
-                <span>Txn ID</span>
+                <span>Transaction ID</span>
                 <span>Date</span>
                 <span className="text-center">Edit</span>
                 <span className="text-center">Delete</span>
               </div>
 
+              {/* ROWS */}
               {payments.map((p, i) => (
                 <div
                   key={i}
                   className="grid grid-cols-6 items-center px-3 py-2 border-t"
                 >
-                  <span>₹ {p.amount}</span>
+                  {/* AMOUNT */}
+                  {editIndex === i ? (
+                    <input
+                      type="number"
+                      value={editAmount}
+                      onChange={(e) => setEditAmount(e.target.value)}
+                      className="border px-1 py-1 text-xs w-20"
+                    />
+                  ) : (
+                    <span>₹ {p.amount}</span>
+                  )}
 
+                  {/* MODE */}
                   <span>{p.paymentMode || p.type}</span>
 
-                  <span className="truncate text-gray-500">
-                    {p.transactionId || "-"}
-                  </span>
+                  {/* TRANSACTION */}
+                  {editIndex === i ? (
+                    <input
+                      type="text"
+                      value={editTxn}
+                      onChange={(e) => setEditTxn(e.target.value)}
+                      className="border px-1 py-1 text-xs w-24"
+                    />
+                  ) : (
+                    <span className="truncate text-gray-500">
+                      {p.transactionId || "-"}
+                    </span>
+                  )}
 
+                  {/* DATE */}
                   <span className="text-gray-400">
                     {new Date(p.date).toLocaleDateString()}
                   </span>
 
-                  <button className="text-blue-600 text-center">Edit</button>
-                  <button className="text-red-600 text-center">Delete</button>
+                  {/* EDIT BUTTON */}
+                  <div className="text-center">
+                    {editIndex === i ? (
+                      <button
+                        onClick={() => handleUpdatePayment(i)}
+                        className="text-green-600 text-xs"
+                      >
+                        Save
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setEditIndex(i);
+                          setEditAmount(p.amount);
+                          setEditTxn(p.transactionId || "");
+                        }}
+                        className="text-blue-600"
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
+
+                  {/* DELETE / CANCEL */}
+                  <div className="text-center">
+                    {editIndex === i ? (
+                      <button
+                        onClick={() => setEditIndex(null)}
+                        className="text-gray-400 text-xs"
+                      >
+                        Cancel
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleDeletePayment(i)}
+                        className="text-red-600"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

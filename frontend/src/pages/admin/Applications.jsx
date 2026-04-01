@@ -16,7 +16,6 @@ const Applications = () => {
   const [feesModalApp, setFeesModalApp] = useState(null);
   const [transactionId, setTransactionId] = useState("");
 
-
   const [searchParams] = useSearchParams();
   const branch = searchParams.get("branch");
 
@@ -86,13 +85,17 @@ const Applications = () => {
     }
   };
 
-  const openEmiOverlay = (id, existingEmis) => {
-    setEmiInputId(id);
-    setStudentEmis((prev) => ({
-      ...prev,
-      [id]: prev[id]?.length ? prev[id] : existingEmis || [],
-    }));
-  };
+  const openEmiOverlay = (id, emis) => {
+  setStudentEmis((prev) => ({
+    ...prev,
+    [id]: emis && emis.length > 0
+      ? emis
+      : [{ amount: "", dueDate: "" }],
+  }));
+
+  setEmiInputId(id);
+};
+
 
   const confirmEmi = async (id) => {
     try {

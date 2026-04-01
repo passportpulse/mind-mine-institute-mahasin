@@ -367,42 +367,65 @@ const ApplicationCard = ({
 
           {/* EMI ROWS (HORIZONTAL SCROLL) */}
           <div className="flex gap-4 overflow-x-auto pb-2">
-            {currentEmis.map((emi, i) => {
-              const today = new Date();
+            {currentEmis.map((emi, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-2 bg-slate-800 px-3 py-2 rounded whitespace-nowrap"
+              >
+                {/* ✅ Amount Input */}
+                <input
+                  type="number"
+                  placeholder="Amount"
+                  value={emi.amount || ""}
+                  onChange={(e) => {
+                    const newEmis = [...currentEmis];
+                    newEmis[i] = {
+                      ...newEmis[i],
+                      amount: e.target.value,
+                    };
+                    setStudentEmis((prev) => ({
+                      ...prev,
+                      [app._id]: newEmis,
+                    }));
+                  }}
+                  className="w-24 px-2 py-1 rounded text-sm"
+                />
 
-              let status = "pending";
-              if (emi.status === "paid") status = "paid";
-              else if (emi.dueDate && new Date(emi.dueDate) < today)
-                status = "overdue";
+                {/* ✅ Date Input */}
+                <input
+                  type="date"
+                  value={emi.dueDate ? emi.dueDate.split("T")[0] : ""}
+                  onChange={(e) => {
+                    const newEmis = [...currentEmis];
+                    newEmis[i] = {
+                      ...newEmis[i],
+                      dueDate: e.target.value,
+                    };
+                    setStudentEmis((prev) => ({
+                      ...prev,
+                      [app._id]: newEmis,
+                    }));
+                  }}
+                  className="w-32 px-2 py-1 rounded text-sm"
+                />
 
-              return (
-                <div
-                  key={i}
-                  className="bg-white p-2 rounded-lg border border-slate-200 min-w-[120px]"
+                {/* ✅ Delete Button */}
+                <button
+                  onClick={() => {
+                    const newEmis = currentEmis.filter(
+                      (_, index) => index !== i,
+                    );
+                    setStudentEmis((prev) => ({
+                      ...prev,
+                      [app._id]: newEmis,
+                    }));
+                  }}
+                  className="text-red-400 text-xs font-bold"
                 >
-                  <p className="text-xs font-bold text-slate-700">
-                    ₹{emi.amount}
-                  </p>
-
-                  <p className="text-[9px] text-slate-400">
-                    {formatDate(emi.dueDate)}
-                  </p>
-
-                  {/* ✅ STATUS BADGE */}
-                  <span
-                    className={`mt-1 inline-block text-[9px] font-bold px-2 py-[2px] rounded-full ${
-                      status === "paid"
-                        ? "bg-green-100 text-green-700"
-                        : status === "overdue"
-                          ? "bg-red-100 text-red-600"
-                          : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {status.toUpperCase()}
-                  </span>
-                </div>
-              );
-            })}
+                  Delete
+                </button>
+              </div>
+            ))}
           </div>
 
           {/* ACTION BUTTONS */}
