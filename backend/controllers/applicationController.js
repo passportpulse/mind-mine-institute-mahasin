@@ -191,12 +191,11 @@ exports.addPayment = async (req, res) => {
     console.log("👉 PAYMENT BODY:", req.body);
 
     const { id } = req.params;
-
     const { amount, type, transactionId, date, emiIndex } = req.body;
 
-    amount = Number(amount);
+    const numericAmount = Number(amount);
 
-    if (!amount || amount <= 0) {
+    if (!numericAmount || numericAmount <= 0) {
       return res.status(400).json({ message: "Invalid amount" });
     }
 
@@ -207,22 +206,23 @@ exports.addPayment = async (req, res) => {
 
     const totalPaid = app.payments.reduce(
       (sum, p) => sum + Number(p.amount || 0),
-      0,
+      0
     );
 
-    if (totalPaid + amount > app.fees) {
+    if (totalPaid + numericAmount > app.fees) {
       return res.status(400).json({
         message: "Payment exceeds total fees",
       });
     }
-    // 🚨 Require transactionId for online modes
+
+    // 🔥 Require transactionId for UPI & Bank
     if ((type === "upi" || type === "bank") && !transactionId) {
       return res.status(400).json({
         message: "Transaction ID is required for UPI/Bank payments",
       });
     }
 
-    // ✅ EMI VALIDATION
+    // ✅ EMI handling
     if (type === "emi") {
       if (emiIndex === undefined) {
         return res.status(400).json({ message: "EMI index required" });
@@ -236,13 +236,12 @@ exports.addPayment = async (req, res) => {
         return res.status(400).json({ message: "EMI already paid" });
       }
 
-      // mark EMI paid
       app.emis[emiIndex].status = "paid";
     }
 
-    // ✅ ADD PAYMENT
+    // ✅ Add payment
     app.payments.push({
-      amount,
+      amount: numericAmount,
       type,
       transactionId: transactionId || "",
       date: date || new Date(),
