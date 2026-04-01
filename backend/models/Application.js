@@ -1,36 +1,75 @@
 const mongoose = require("mongoose");
+
+const paymentSchema = new mongoose.Schema({
+  amount: { type: Number, required: true },
+
+  type: {
+    type: String,
+    enum: ["cash", "online", "emi"],
+    default: "cash",
+  },
+
+  date: { type: Date, default: Date.now },
+
+  emiIndex: {
+    type: Number, // optional link to EMI
+  },
+});
+
 const emiSchema = new mongoose.Schema({
   amount: { type: Number, required: true },
+
   dueDate: { type: Date, required: true },
+
+  status: {
+    type: String,
+    enum: ["pending", "paid"],
+    default: "pending",
+  },
 });
+
 const applicationSchema = new mongoose.Schema(
   {
     trackingId: {
       type: String,
-      unique: true,
+      unique: true, // ✅ already indexed internally
     },
+
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
+
     fees: {
       type: Number,
+      default: 0,
     },
-    // store multiple EMIs
-    emis: [emiSchema],
+
+    // 💰 PAYMENTS (source of truth)
+    payments: {
+      type: [paymentSchema],
+      default: [],
+    },
+
+    // 📅 EMI PLAN (tracking only)
+    emis: {
+      type: [emiSchema],
+      default: [],
+    },
+
     applicationId: {
       type: String,
       unique: true,
-      sparse: true, // Allows null for pending/rejected apps
+      sparse: true,
     },
-    // Updated to match Section 1 of your form
+
     campusInfo: {
       campus: { type: String, required: true },
       course: { type: String, required: true },
-      duration: { type: String, required: true }, // Added Duration
+      duration: { type: String, required: true },
     },
-    // Updated to match Section 2
+
     studentDetails: {
       fullName: { type: String, required: true },
       dob: { type: Date, required: true },
@@ -41,7 +80,7 @@ const applicationSchema = new mongoose.Schema(
       email: { type: String, required: true },
       address: { type: String, required: true },
     },
-    // Updated to match Section 3
+
     parentDetails: {
       fatherName: { type: String, required: true },
       fatherOccupation: String,
@@ -50,18 +89,30 @@ const applicationSchema = new mongoose.Schema(
       motherOccupation: String,
       motherPhone: { type: String, required: true },
     },
-    // These store the strings (URLs/Paths) after processing the file upload
+
     documents: {
       aadhaarFile: { type: String, required: true },
       photo: { type: String, required: true },
       tenthMarksheet: { type: String, required: true },
       twelfthMarksheet: { type: String, required: true },
-      graduation: { type: String }, // Optional
-      postGraduation: { type: String }, // Optional
+      graduation: { type: String },
+      postGraduation: { type: String },
     },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+
+    // ✅ include virtuals in API response
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
 
+// ✅ VIRTUAL FIELD (not stored in DB)
+applicationSchema.virtual("totalPaid").get(function () {
+  return this.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+});
+
 const Application = mongoose.model("Application", applicationSchema);
+
 module.exports = Application;

@@ -1,25 +1,15 @@
-const fs = require("fs");
-const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
-// ✅ DEBUG LOGGER (ADD HERE)
+
+// ✅ Logger
 app.use((req, res, next) => {
-  console.log("Incoming Request:", req.method, req.url);
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
-
-// ✅ Create uploads folder if not exists
-const uploadDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// ✅ Serve uploaded files (🔥 ADD HERE)
-app.use("/uploads", express.static(uploadDir));
 
 // ✅ CORS
 app.use(cors({
@@ -30,19 +20,24 @@ app.use(cors({
 }));
 
 // ✅ Body parser
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
-// ✅ Test Route
+// ✅ Test route
 app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
 
-// ✅ ROUTES
+// ✅ Routes
 app.use("/api/applications", require("./routes/applicationRoutes"));
-app.use("/api/admin", require("./routes/adminRoutes")); 
+app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/enquiries", require("./routes/enquiryRoutes"));
 
-// ✅ GLOBAL ERROR HANDLER
+// ❌ 404 handler
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
+
+// ✅ Global error handler
 app.use((err, req, res, next) => {
   console.error("GLOBAL ERROR:", err);
   res.status(500).json({
@@ -50,12 +45,21 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ✅ DB Connection
-mongoose
-  .connect(process.env.MONGO_URI)
+// ✅ MongoDB connection
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log(err));
 
-// ✅ Server
+
+// ✅ Crash handlers
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT EXCEPTION:", err);
+});
+
+process.on("unhandledRejection", (err) => {
+  console.error("UNHANDLED REJECTION:", err);
+});
+
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));

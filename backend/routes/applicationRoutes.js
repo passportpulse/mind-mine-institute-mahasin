@@ -9,7 +9,9 @@ const {
   getApplicationById,
   updateApplication,
   getApplicationByTrackingId,
-  getApplicationByPhone,updateEmis,
+  getApplicationByPhone,
+  updateEmis,
+  addPayment,
 } = require("../controllers/applicationController");
 
 // ✅ Multer fields
@@ -22,13 +24,24 @@ const uploadFields = upload.fields([
   { name: "postGraduation", maxCount: 1 },
 ]);
 
-// ✅ Routes
+// ================= ROUTES =================
+
+// 🔹 Create application
 router.post("/", uploadFields, createApplication);
+
+// 🔹 Public routes
 router.get("/status/:trackingId", getApplicationByTrackingId);
 router.get("/phone/:phone", getApplicationByPhone);
+
+// 🔹 Admin routes
 router.get("/", adminAuth, getApplications);
 router.get("/:id", adminAuth, getApplicationById);
 router.patch("/:id", adminAuth, updateApplication);
+
+// 🔥 EMI Management
 router.patch("/:id/emi", adminAuth, updateEmis);
+
+// 🔥 Payment (handles BOTH normal + EMI payment)
+router.post("/:id/payment", adminAuth, addPayment);
 
 module.exports = router;

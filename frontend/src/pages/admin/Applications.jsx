@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { API_BASE_URL, getAdminHeaders } from "../../config/api";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import ApplicationCard from "../../components/admin/ApplicationCard";
-import FeesModal from "../../components/admin/FeesModal ";
+import FeesModal from "../../components/admin/FeesModal";
 
 const Applications = () => {
   const [apps, setApps] = useState([]);
@@ -17,7 +17,6 @@ const Applications = () => {
 
   const [searchParams] = useSearchParams();
   const branch = searchParams.get("branch");
-  const navigate = useNavigate();
 
   const fetchApps = async () => {
     setLoading(true);
@@ -119,6 +118,24 @@ const Applications = () => {
         return "bg-yellow-100 text-yellow-700 border-yellow-200";
     }
   };
+  const addPayment = async (id, paymentData) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/applications/${id}/payment`, {
+        method: "POST",
+        headers: getAdminHeaders(),
+        body: JSON.stringify(paymentData),
+      });
+
+      const updatedApp = await res.json();
+
+      // 🔥 UPDATE MODAL DATA INSTANTLY
+      setFeesModalApp(updatedApp.data);
+
+      fetchApps();
+    } catch (err) {
+      console.error("Payment Error:", err);
+    }
+  };
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto bg-slate-50 min-h-screen">
@@ -174,6 +191,7 @@ const Applications = () => {
             <FeesModal
               app={feesModalApp}
               onClose={() => setFeesModalApp(null)}
+              onAddPayment={addPayment}
             />
           )}
         </div>

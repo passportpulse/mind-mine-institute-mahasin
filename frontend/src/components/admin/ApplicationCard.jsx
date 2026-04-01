@@ -43,10 +43,12 @@ const ApplicationCard = ({
     0,
   );
 
-  // OPTIONAL: if you store paid status
-  const paidAmount = emis
-    .filter((e) => e.status === "paid")
-    .reduce((sum, emi) => sum + Number(emi.amount || 0), 0);
+  const payments = app.payments || [];
+
+  const paidAmount = payments.reduce(
+    (sum, p) => sum + Number(p.amount || 0),
+    0,
+  );
 
   const dueAmount = totalFees - paidAmount;
 
@@ -97,6 +99,17 @@ const ApplicationCard = ({
           {app.status === "approved" && app.fees && (
             <div className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-200 whitespace-nowrap">
               ₹ {app.fees}
+            </div>
+          )}
+          {app.status === "approved" && (
+            <div className="px-3 py-1 rounded-full bg-green-50 text-green-700 text-[10px] font-bold border border-green-200 whitespace-nowrap">
+              Paid: ₹ {paidAmount}
+            </div>
+          )}
+
+          {app.status === "approved" && (
+            <div className="px-3 py-1 rounded-full bg-red-50 text-red-600 text-[10px] font-bold border border-red-200 whitespace-nowrap">
+              Due: ₹ {dueAmount}
             </div>
           )}
         </div>
@@ -307,20 +320,20 @@ const ApplicationCard = ({
           </p>
           <div className="flex items-center gap-3">
             <input
-  type="number"
-  placeholder="Fees"
-  value={feeValue}
-  onChange={(e) => setFeeValue(e.target.value)}
-  className="bg-white px-2 py-1 rounded-xl text-sm w-32"
-/>
+              type="number"
+              placeholder="Fees"
+              value={feeValue}
+              onChange={(e) => setFeeValue(e.target.value)}
+              className="bg-white px-2 py-1 rounded-xl text-sm w-32"
+            />
 
-<input
-  type="text"
-  placeholder="Reg ID"
-  value={applicationIdValue}
-  onChange={(e) => setApplicationIdValue(e.target.value)}
-  className="bg-white px-2 py-1 rounded-xl text-sm w-40"
-/>
+            <input
+              type="text"
+              placeholder="Reg ID"
+              value={applicationIdValue}
+              onChange={(e) => setApplicationIdValue(e.target.value)}
+              className="bg-white px-2 py-1 rounded-xl text-sm w-40"
+            />
 
             <button
               onClick={() => setFeeInputId(null)}

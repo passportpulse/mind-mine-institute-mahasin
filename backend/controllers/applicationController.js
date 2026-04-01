@@ -1,19 +1,15 @@
 const Application = require("../models/Application");
-// 🔹 Function to generate tracking ID
+
+// 🔹 Generate Tracking ID
 const generateTrackingId = () => {
-  const random = Math.floor(100 + Math.random() * 900); // 3 digits
-  const timestamp = Date.now().toString().slice(-4); // last 4 digits of time
-  // Format: MMI-629387-2846 (Similar to your requested format)
+  const random = Math.floor(100 + Math.random() * 900);
+  const timestamp = Date.now().toString().slice(-4);
   return `MMI-${Math.floor(100000 + Math.random() * 899999)}-${random}${timestamp.slice(-1)}`;
 };
 
+// ================= CREATE =================
 exports.createApplication = async (req, res) => {
   try {
-    // 🔍 DEBUG LOGS
-    console.log("BODY RECEIVED:", req.body);
-    console.log("FILES RECEIVED:", req.files);
-
-    // ✅ SAFE JSON PARSING
     let campusInfo, studentDetails, parentDetails, guardian;
 
     try {
@@ -21,24 +17,17 @@ exports.createApplication = async (req, res) => {
       studentDetails = JSON.parse(req.body.studentDetails || "{}");
       parentDetails = JSON.parse(req.body.parentDetails || "{}");
       guardian = JSON.parse(req.body.guardian || "{}");
-    } catch (err) {
-      return res
-        .status(400)
-        .json({ message: "Invalid JSON format in form data fields" });
+    } catch {
+      return res.status(400).json({ message: "Invalid JSON format" });
     }
 
     const files = req.files || {};
 
-    // ✅ SCHEMA VALIDATION (Backend Guardrails)
-
-    // Section 1: Campus
+    // ✅ Validation
     if (!campusInfo.campus || !campusInfo.course || !campusInfo.duration) {
-      return res
-        .status(400)
-        .json({ message: "Campus, Course, and Duration are required" });
+      return res.status(400).json({ message: "Campus info required" });
     }
 
-    // Section 2: Student
     const requiredStudentFields = [
       "fullName",
       "dob",
@@ -49,38 +38,32 @@ exports.createApplication = async (req, res) => {
       "email",
       "address",
     ];
+
     for (const field of requiredStudentFields) {
       if (!studentDetails[field]) {
-        return res
-          .status(400)
-          .json({ message: `Student ${field} is required` });
+        return res.status(400).json({ message: `${field} required` });
       }
     }
 
-    // Section 3: Parents
     if (
       !parentDetails.fatherName ||
       !parentDetails.fatherPhone ||
       !parentDetails.motherName ||
       !parentDetails.motherPhone
     ) {
-      return res.status(400).json({
-        message: "Father and Mother details (Name & Phone) are required",
-      });
+      return res.status(400).json({ message: "Parent details required" });
     }
 
-    // Section 4: Document Verification (Mandatory ones per schema)
     const requiredDocs = [
       "aadhaarFile",
       "photo",
       "tenthMarksheet",
       "twelfthMarksheet",
     ];
+
     for (const doc of requiredDocs) {
       if (!files[doc]) {
-        return res
-          .status(400)
-          .json({ message: `${doc.replace(/([A-Z])/g, " $1")} is required` });
+        return res.status(400).json({ message: `${doc} required` });
       }
     }
 
@@ -93,10 +76,8 @@ exports.createApplication = async (req, res) => {
       postGraduation: files.postGraduation?.[0]?.path || "",
     };
 
-    // 🔥 GENERATE TRACKING ID
     const trackingId = generateTrackingId();
 
-    // ✅ CREATE DATABASE ENTRY
     const application = await Application.create({
       trackingId,
       status: "pending",
@@ -107,47 +88,43 @@ exports.createApplication = async (req, res) => {
       documents,
     });
 
-    // ✅ SUCCESS RESPONSE
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
-      message: "Application submitted successfully",
       trackingId: application.trackingId,
       id: application._id,
     });
   } catch (error) {
-    console.error("CREATE APPLICATION ERROR:", error);
-
-    // Handle Mongoose Duplicate Key Error (for trackingId)
     if (error.code === 11000) {
-      return res.status(409).json({
-        message: "Duplicate tracking ID generated. Please try again.",
-      });
+      return res.status(409).json({ message: "Duplicate tracking ID" });
     }
-
-    return res.status(500).json({
-      message: "Server Error during submission",
-      error: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
+// ================= UPDATE (APPROVE) =================
 exports.updateApplication = async (req, res) => {
   try {
-    const { status, applicationId } = req.body;
-    let updateData = { ...req.body };
-    // validation
+    const { status, applicationId, fees } = req.body;
+
+    const updateData = {};
+
+    if (status) updateData.status = status;
+
     if (status === "approved") {
-      if (!applicationId) {
+      if (!applicationId || !fees) {
         return res.status(400).json({
-          message: "Application ID is required for approval",
+          message: "Application ID and Fees required",
         });
       }
+
+      updateData.applicationId = applicationId;
+      updateData.fees = Number(fees);
     }
 
     const updated = await Application.findByIdAndUpdate(
       req.params.id,
       updateData,
-      { new: true },
+      { new: true }
     );
 
     res.json({ success: true, data: updated });
@@ -156,24 +133,34 @@ exports.updateApplication = async (req, res) => {
   }
 };
 
-// Get All Applications
+// ================= GET ALL =================
 exports.getApplications = async (req, res) => {
   try {
     const applications = await Application.find().sort({ createdAt: -1 });
-
-    res.json({
-      success: true,
-      data: applications,
-    });
+    res.json({ success: true, data: applications });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
-// Get Single Application
+// ================= GET BY ID =================
 exports.getApplicationById = async (req, res) => {
   try {
     const app = await Application.findById(req.params.id);
+    if (!app) return res.status(404).json({ message: "Not found" });
+
+    res.json({ success: true, data: app });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ================= GET BY TRACKING =================
+exports.getApplicationByTrackingId = async (req, res) => {
+  try {
+    const app = await Application.findOne({
+      trackingId: req.params.trackingId,
+    });
 
     if (!app) {
       return res.status(404).json({ message: "Not found" });
@@ -184,89 +171,118 @@ exports.getApplicationById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-// Get Application by Tracking ID (Public)
-exports.getApplicationByTrackingId = async (req, res) => {
-  try {
-    const { trackingId } = req.params;
 
-    // Look for the trackingId in the database
-    const application = await Application.findOne({ trackingId });
-
-    if (!application) {
-      return res.status(404).json({
-        success: false,
-        message: "No application found with this Tracking ID.",
-      });
-    }
-
-    // Return the data
-    res.json({
-      success: true,
-      data: application,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Server error while fetching status.",
-    });
-  }
-};
-// Get Application by Phone Number (Public)
+// ================= GET BY PHONE =================
 exports.getApplicationByPhone = async (req, res) => {
   try {
-    const { phone } = req.params;
-
-    if (!phone) {
-      return res.status(400).json({
-        success: false,
-        message: "Phone number is required",
-      });
-    }
-
-    // Look for the phone number in studentDetails.contact
-    const application = await Application.find({
-      "studentDetails.contact": phone,
+    const apps = await Application.find({
+      "studentDetails.contact": req.params.phone,
     });
 
-    if (!application) {
-      return res.status(404).json({
-        success: false,
-        message: "No application found with this phone number.",
+    res.json({ success: true, data: apps });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ================= ADD PAYMENT =================
+exports.addPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let { amount, type = "cash", date, emiIndex } = req.body;
+
+    amount = Number(amount);
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: "Invalid amount" });
+    }
+
+    const app = await Application.findById(id);
+    if (!app) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    const totalPaid = app.payments.reduce(
+      (sum, p) => sum + Number(p.amount || 0),
+      0
+    );
+
+    if (totalPaid + amount > app.fees) {
+      return res.status(400).json({
+        message: "Payment exceeds total fees",
       });
     }
+
+    // ✅ EMI VALIDATION
+    if (type === "emi") {
+      if (emiIndex === undefined) {
+        return res.status(400).json({ message: "EMI index required" });
+      }
+
+      if (!app.emis[emiIndex]) {
+        return res.status(400).json({ message: "Invalid EMI index" });
+      }
+
+      if (app.emis[emiIndex].status === "paid") {
+        return res.status(400).json({ message: "EMI already paid" });
+      }
+
+      // mark EMI paid
+      app.emis[emiIndex].status = "paid";
+    }
+
+    // ✅ ADD PAYMENT
+    app.payments.push({
+      amount,
+      type,
+      date: date || new Date(),
+      emiIndex,
+    });
+
+    // 🔥 SORT PAYMENTS (LATEST FIRST)
+    app.payments.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    await app.save();
 
     res.json({
       success: true,
-      data: application,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Server error while fetching application by phone.",
-      error: error.message,
-    });
-  }
-};
-exports.updateEmis = async (req, res) => {
-  const { id } = req.params;
-  const { emis } = req.body;
-
-  try {
-    const application = await Application.findById(id);
-    if (!application || application.length === 0)
-      return res.status(404).json({ message: "Application not found" });
-
-    // 🔥 REPLACE entire EMI array
-    application.emis = emis;
-
-    await application.save();
-
-    res.status(200).json({
-      message: "EMIs updated successfully",
-      emis: application.emis,
+      message: "Payment added",
+      data: app,
     });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// ================= UPDATE EMIs =================
+exports.updateEmis = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { emis } = req.body;
+
+    if (!Array.isArray(emis)) {
+      return res.status(400).json({ message: "Invalid EMI data" });
+    }
+
+    const app = await Application.findById(id);
+    if (!app) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    app.emis = emis.map((e) => ({
+      amount: Number(e.amount),
+      dueDate: e.dueDate,
+      status: "pending",
+    }));
+
+    await app.save();
+
+    res.json({
+      success: true,
+      message: "EMIs updated",
+      data: app,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };

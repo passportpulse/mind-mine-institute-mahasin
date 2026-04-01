@@ -1,16 +1,16 @@
 import { useState } from "react";
 
-const FeesModal = ({ app, onClose, onMarkPaid, onAddPayment }) => {
+const FeesModal = ({ app, onClose, onAddPayment }) => {
   const totalFees = app.fees || 0;
   const emis = app.emis || [];
-  const payments = app.payments || []; // ✅ NEW
+  const payments = app.payments || [];
 
   const today = new Date();
 
-  // ✅ TOTAL PAID FROM PAYMENTS
+  // ✅ TOTAL PAID FROM PAYMENTS (single source of truth)
   const paidAmount = payments.reduce(
     (sum, p) => sum + Number(p.amount || 0),
-    0
+    0,
   );
 
   const dueAmount = totalFees - paidAmount;
@@ -22,15 +22,25 @@ const FeesModal = ({ app, onClose, onMarkPaid, onAddPayment }) => {
     return "pending";
   };
 
-  // ✅ ADD PAYMENT STATE
+  // ✅ STATE
   const [amount, setAmount] = useState("");
   const [mode, setMode] = useState("cash");
 
+  // ✅ ADD PAYMENT
   const handleAddPayment = () => {
     if (!amount) return;
 
+    const numericAmount = Number(amount);
+
+    if (numericAmount <= 0) return;
+
+    if (numericAmount > dueAmount) {
+      alert("Amount exceeds due");
+      return;
+    }
+
     onAddPayment(app._id, {
-      amount: Number(amount),
+      amount: numericAmount,
       type: mode,
       date: new Date(),
     });
@@ -38,17 +48,36 @@ const FeesModal = ({ app, onClose, onMarkPaid, onAddPayment }) => {
     setAmount("");
   };
 
+  const handleMarkPaid = (emi, index) => {
+    if (emi.amount > dueAmount) {
+      alert("Payment exceeds due");
+      return;
+    }
+
+    onAddPayment(app._id, {
+      amount: Number(emi.amount),
+      type: "emi",
+      date: new Date(),
+      emiIndex: index,
+    });
+  };
+
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white w-[650px] max-h-[90vh] overflow-y-auto rounded-2xl p-6 shadow-xl">
-        
         <h2 className="text-lg font-bold mb-4">Fees Summary</h2>
 
         {/* ✅ SUMMARY */}
         <div className="space-y-2 text-sm mb-5">
-          <p><b>Total Fees:</b> ₹ {totalFees}</p>
-          <p className="text-green-700 font-bold"><b>Total Paid:</b> ₹ {paidAmount}</p>
-          <p className="text-red-600 font-bold"><b>Due:</b> ₹ {dueAmount}</p>
+          <p>
+            <b>Total Fees:</b> ₹ {totalFees}
+          </p>
+          <p className="text-green-700 font-bold">
+            <b>Total Paid:</b> ₹ {paidAmount}
+          </p>
+          <p className="text-red-600 font-bold">
+            <b>Due:</b> ₹ {dueAmount}
+          </p>
         </div>
 
         {/* ✅ ADD PAYMENT */}
@@ -75,7 +104,12 @@ const FeesModal = ({ app, onClose, onMarkPaid, onAddPayment }) => {
 
             <button
               onClick={handleAddPayment}
-              className="bg-indigo-600 text-white px-3 py-1 rounded text-xs"
+              disabled={dueAmount <= 0}
+              className={`px-3 py-1 rounded text-xs ${
+                dueAmount <= 0
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-indigo-600 text-white"
+              }`}
             >
               Paid
             </button>
@@ -107,8 +141,8 @@ const FeesModal = ({ app, onClose, onMarkPaid, onAddPayment }) => {
                       status === "paid"
                         ? "bg-green-100 text-green-700"
                         : status === "overdue"
-                        ? "bg-red-100 text-red-600"
-                        : "bg-yellow-100 text-yellow-700"
+                          ? "bg-red-100 text-red-600"
+                          : "bg-yellow-100 text-yellow-700"
                     }`}
                   >
                     {status.toUpperCase()}
@@ -116,7 +150,7 @@ const FeesModal = ({ app, onClose, onMarkPaid, onAddPayment }) => {
 
                   {status !== "paid" && (
                     <button
-                      onClick={() => onMarkPaid(app._id, index)}
+                      onClick={() => handleMarkPaid(emi, index)}
                       className="text-xs bg-green-600 text-white px-3 py-1 rounded"
                     >
                       Mark Paid
@@ -137,12 +171,13 @@ const FeesModal = ({ app, onClose, onMarkPaid, onAddPayment }) => {
           )}
 
           {payments.map((p, i) => (
-            <div
-              key={i}
-              className="flex justify-between text-xs border-b pb-1"
-            >
+            <div key={i} className="flex justify-between text-xs border-b pb-1">
               <span>₹ {p.amount}</span>
-              <span className="text-gray-500">{p.type}</span>
+
+              <span className="text-gray-500 capitalize">
+                {p.type === "emi" ? "EMI Payment" : p.type}
+              </span>
+
               <span className="text-gray-400">
                 {new Date(p.date).toLocaleDateString()}
               </span>
@@ -152,10 +187,7 @@ const FeesModal = ({ app, onClose, onMarkPaid, onAddPayment }) => {
 
         {/* CLOSE */}
         <div className="text-right">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-500"
-          >
+          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-500">
             Close
           </button>
         </div>
