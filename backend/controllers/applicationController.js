@@ -110,6 +110,7 @@ exports.updateApplication = async (req, res) => {
 
     if (status) updateData.status = status;
 
+    // ✅ APPROVE LOGIC
     if (status === "approved") {
       if (!applicationId || !fees) {
         return res.status(400).json({
@@ -119,6 +120,15 @@ exports.updateApplication = async (req, res) => {
 
       updateData.applicationId = applicationId;
       updateData.fees = Number(fees);
+    }
+
+    // 🔥🔥🔥 IMPORTANT: CLEAR ALL FINANCIAL DATA ON REJECT
+    if (status === "rejected") {
+      updateData.applicationId = null;
+      updateData.fees = 0;
+
+      updateData.emis = []; // ✅ clear EMI
+      updateData.payments = []; // ✅ clear payment history
     }
 
     const updated = await Application.findByIdAndUpdate(
@@ -206,7 +216,7 @@ exports.addPayment = async (req, res) => {
 
     const totalPaid = app.payments.reduce(
       (sum, p) => sum + Number(p.amount || 0),
-      0
+      0,
     );
 
     if (totalPaid + numericAmount > app.fees) {
@@ -279,10 +289,10 @@ exports.updateEmis = async (req, res) => {
       return res.status(404).json({ message: "Application not found" });
     }
 
-    app.emis = emis.map((e) => ({
+    app.emis = emis.map((e, i) => ({
       amount: Number(e.amount),
       dueDate: e.dueDate,
-      status: "pending",
+      status: e.status || app.emis?.[i]?.status || "pending",
     }));
 
     await app.save();
@@ -290,6 +300,68 @@ exports.updateEmis = async (req, res) => {
     res.json({
       success: true,
       message: "EMIs updated",
+      data: app,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+// ================= EDIT PAYMENT =================
+exports.updatePayment = async (req, res) => {
+  try {
+    const { id, paymentId } = req.params;
+    const { amount, transactionId, date } = req.body;
+
+    const app = await Application.findById(id);
+    if (!app) return res.status(404).json({ message: "Application not found" });
+
+    const payment = app.payments.id(paymentId);
+    if (!payment) return res.status(404).json({ message: "Payment not found" });
+
+    // 🔥 If EMI payment, prevent editing amount mismatch
+    if (payment.type === "emi") {
+      return res.status(400).json({
+        message: "Cannot edit EMI payment amount",
+      });
+    }
+
+    if (amount) payment.amount = Number(amount);
+    if (transactionId !== undefined) payment.transactionId = transactionId;
+    if (date) payment.date = date;
+
+    await app.save();
+
+    res.json({ success: true, data: app });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+// ================= DELETE PAYMENT =================
+exports.deletePayment = async (req, res) => {
+  try {
+    const { id, paymentId } = req.params;
+
+    const app = await Application.findById(id);
+    if (!app) return res.status(404).json({ message: "Application not found" });
+
+    const payment = app.payments.id(paymentId);
+    if (!payment) return res.status(404).json({ message: "Payment not found" });
+
+    // 🔥 If EMI payment → revert EMI status
+    if (payment.type === "emi" && payment.emiIndex !== undefined) {
+      if (app.emis[payment.emiIndex]) {
+        app.emis[payment.emiIndex].status = "pending";
+      }
+    }
+
+    // ✅ Remove payment
+    payment.deleteOne();
+
+    await app.save();
+
+    res.json({
+      success: true,
+      message: "Payment deleted",
       data: app,
     });
   } catch (err) {

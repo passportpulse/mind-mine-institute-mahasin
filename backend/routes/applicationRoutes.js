@@ -12,6 +12,8 @@ const {
   getApplicationByPhone,
   updateEmis,
   addPayment,
+  updatePayment,
+  deletePayment,
 } = require("../controllers/applicationController");
 
 // ✅ Multer fields
@@ -43,5 +45,7 @@ router.patch("/:id/emi", adminAuth, updateEmis);
 
 // 🔥 Payment (handles BOTH normal + EMI payment)
 router.post("/:id/payment", adminAuth, addPayment);
+router.put("/:id/payment/:paymentId", updatePayment);
+router.delete("/:id/payment/:paymentId", deletePayment);
 
 module.exports = router;
