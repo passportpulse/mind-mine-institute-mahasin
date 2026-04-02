@@ -161,6 +161,7 @@ const Dashboard = () => {
 
       const res = await fetch(endpoint, { headers: getAdminHeaders() });
       const data = await res.json();
+      console.log(data);
       if (data.success) {
         setSearchResult(Array.isArray(data.data) ? data.data : [data.data]);
       } else {

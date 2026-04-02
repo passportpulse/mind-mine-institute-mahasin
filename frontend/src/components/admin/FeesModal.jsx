@@ -11,7 +11,7 @@ const FeesModal = ({ app, onClose, refreshApp }) => {
   // ✅ TOTAL PAID
   const paidAmount = payments.reduce(
     (sum, p) => sum + Number(p.amount || 0),
-    0
+    0,
   );
 
   const dueAmount = totalFees - paidAmount;
@@ -28,10 +28,6 @@ const FeesModal = ({ app, onClose, refreshApp }) => {
   const [mode, setMode] = useState("cash");
   const [transactionId, setTransactionId] = useState("");
 
-  const [editPaymentId, setEditPaymentId] = useState(null);
-  const [editAmount, setEditAmount] = useState("");
-  const [editTxn, setEditTxn] = useState("");
-
   const [selectedEmiIndex, setSelectedEmiIndex] = useState(null);
   const [emiMode, setEmiMode] = useState("cash");
   const [emiTxnId, setEmiTxnId] = useState("");
@@ -39,31 +35,36 @@ const FeesModal = ({ app, onClose, refreshApp }) => {
   // ================= ADD PAYMENT =================
   const handleAddPayment = async () => {
     const numericAmount = Number(amount);
-    if (!numericAmount || numericAmount <= 0) return alert("Enter a valid amount");
+    if (!numericAmount || numericAmount <= 0)
+      return alert("Enter a valid amount");
     if (numericAmount > dueAmount) return alert("Amount exceeds due");
-    if ((mode === "upi" || mode === "bank") && !transactionId) return alert("Transaction ID required");
+    if ((mode === "upi" || mode === "bank") && !transactionId)
+      return alert("Transaction ID required");
 
     try {
-      const res = await fetch(`${API_BASE_URL}/applications/${app._id}/payment`, {
-        method: "POST",
-        headers: {
-          ...getAdminHeaders(),
-          "Content-Type": "application/json",
+      const res = await fetch(
+        `${API_BASE_URL}/applications/${app._id}/payment`,
+        {
+          method: "POST",
+          headers: {
+            ...getAdminHeaders(),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: numericAmount,
+            type: mode,
+            transactionId: transactionId.trim(),
+            date: new Date(),
+          }),
         },
-        body: JSON.stringify({
-          amount: numericAmount,
-          type: mode,
-          transactionId: transactionId.trim(),
-          date: new Date(),
-        }),
-      });
+      );
 
       const data = await res.json();
 
       if (data.success) {
         setAmount("");
         setTransactionId("");
-        refreshApp(); // ✅ refresh after successful add
+        refreshApp();
       } else {
         alert(data.message || "Failed to add payment");
       }
@@ -76,25 +77,30 @@ const FeesModal = ({ app, onClose, refreshApp }) => {
   // ================= EMI PAYMENT =================
   const handleEmiPayment = async (emi, index) => {
     const emiAmount = Number(emi.amount);
-    if (!emiAmount || emiAmount > dueAmount) return alert("Payment exceeds due");
-    if ((emiMode === "upi" || emiMode === "bank") && !emiTxnId) return alert("Transaction ID required");
+    if (!emiAmount || emiAmount > dueAmount)
+      return alert("Payment exceeds due");
+    if ((emiMode === "upi" || emiMode === "bank") && !emiTxnId)
+      return alert("Transaction ID required");
 
     try {
-      const res = await fetch(`${API_BASE_URL}/applications/${app._id}/payment`, {
-        method: "POST",
-        headers: {
-          ...getAdminHeaders(),
-          "Content-Type": "application/json",
+      const res = await fetch(
+        `${API_BASE_URL}/applications/${app._id}/payment`,
+        {
+          method: "POST",
+          headers: {
+            ...getAdminHeaders(),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: emiAmount,
+            type: "emi",
+            paymentMode: emiMode,
+            transactionId: emiTxnId.trim(),
+            date: new Date(),
+            emiIndex: index,
+          }),
         },
-        body: JSON.stringify({
-          amount: emiAmount,
-          type: "emi",
-          paymentMode: emiMode,
-          transactionId: emiTxnId.trim(),
-          date: new Date(),
-          emiIndex: index,
-        }),
-      });
+      );
 
       const data = await res.json();
 
@@ -121,54 +127,19 @@ const FeesModal = ({ app, onClose, refreshApp }) => {
         {
           method: "DELETE",
           headers: getAdminHeaders(),
-        }
+        },
       );
 
       const data = await res.json();
 
       if (data.success) {
-        refreshApp(); // ✅ refresh after delete
+        refreshApp();
       } else {
         alert(data.message || "Failed to delete payment");
       }
     } catch (err) {
       console.error("Delete failed", err);
       alert("Failed to delete payment");
-    }
-  };
-
-  // ================= UPDATE PAYMENT =================
-  const handleUpdatePayment = async (paymentId) => {
-    const numericAmount = Number(editAmount);
-    if (!numericAmount || numericAmount <= 0) return alert("Enter a valid amount");
-
-    try {
-      const res = await fetch(
-        `${API_BASE_URL}/applications/${app._id}/payment/${paymentId}`,
-        {
-          method: "PUT",
-          headers: {
-            ...getAdminHeaders(),
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            amount: numericAmount,
-            transactionId: editTxn.trim(),
-          }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (data.success) {
-        setEditPaymentId(null);
-        refreshApp(); // ✅ refresh after update
-      } else {
-        alert(data.message || "Failed to update payment");
-      }
-    } catch (err) {
-      console.error("Update failed", err);
-      alert("Failed to update payment");
     }
   };
 
@@ -256,13 +227,18 @@ const FeesModal = ({ app, onClose, refreshApp }) => {
                   <div>
                     <p className="font-bold">₹ {emi.amount}</p>
                     <p className="text-xs text-gray-500">
-                      Due: {emi.dueDate?.split("T")[0] || "N/A"}
+                      Due:{" "}
+                      {emi.dueDate
+                        ? new Date(emi.dueDate)
+                            .toLocaleDateString("en-GB")
+                            .replace(/\//g, "-")
+                        : "N/A"}
                     </p>
                   </div>
                   <div className="flex gap-3 items-center">
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${getStatusBadge(
-                        status
+                        status,
                       )}`}
                     >
                       {status}
@@ -320,75 +296,43 @@ const FeesModal = ({ app, onClose, refreshApp }) => {
         {/* PAYMENT HISTORY */}
         <div className="space-y-2 mb-6">
           <h4 className="text-xs font-bold text-gray-500">Payment History</h4>
-          {payments.length === 0 && <p className="text-xs text-gray-400">No payments yet</p>}
+          {payments.length === 0 && (
+            <p className="text-xs text-gray-400">No payments yet</p>
+          )}
           {payments.length > 0 && (
             <div className="border rounded-xl overflow-hidden text-xs">
-              <div className="grid grid-cols-6 bg-gray-100 font-bold px-3 py-2">
+              <div className="grid grid-cols-5 bg-gray-100 font-bold px-3 py-2">
                 <span>Amount</span>
                 <span>Mode</span>
                 <span>Transaction ID</span>
                 <span>Date</span>
-                <span className="text-center">Edit</span>
-                <span className="text-center">Delete</span>
+                <span className="text-center">Action</span>
               </div>
 
               {payments.map((p) => (
-                <div key={p._id} className="grid grid-cols-6 items-center px-3 py-2 border-t">
-                  {editPaymentId === p._id ? (
-                    <input
-                      type="number"
-                      value={editAmount}
-                      onChange={(e) => setEditAmount(e.target.value)}
-                      className="border px-1 py-1 text-xs w-20"
-                    />
-                  ) : (
-                    <span>₹ {p.amount}</span>
-                  )}
-
+                <div
+                  key={p._id}
+                  className="grid grid-cols-5 items-center px-3 py-2 border-t"
+                >
+                  <span>₹ {p.amount}</span>
                   <span>{p.paymentMode || p.type}</span>
-
-                  {editPaymentId === p._id ? (
-                    <input
-                      type="text"
-                      value={editTxn}
-                      onChange={(e) => setEditTxn(e.target.value)}
-                      className="border px-1 py-1 text-xs w-24"
-                    />
-                  ) : (
-                    <span className="truncate text-gray-500">{p.transactionId || "-"}</span>
-                  )}
-
-                  <span className="text-gray-400">{new Date(p.date).toLocaleDateString()}</span>
-
+                  <span className="truncate text-gray-500">
+                    {p.transactionId || "-"}
+                  </span>
+                  <span className="text-gray-400">
+                    {p.date
+                      ? new Date(p.date)
+                          .toLocaleDateString("en-GB")
+                          .replace(/\//g, "-")
+                      : "N/A"}
+                  </span>
                   <div className="text-center">
-                    {editPaymentId === p._id ? (
-                      <button onClick={() => handleUpdatePayment(p._id)} className="text-green-600 text-xs">
-                        Save
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setEditPaymentId(p._id);
-                          setEditAmount(p.amount);
-                          setEditTxn(p.transactionId || "");
-                        }}
-                        className="text-blue-600"
-                      >
-                        Edit
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="text-center">
-                    {editPaymentId === p._id ? (
-                      <button onClick={() => setEditPaymentId(null)} className="text-gray-400 text-xs">
-                        Cancel
-                      </button>
-                    ) : (
-                      <button onClick={() => handleDeletePayment(p._id)} className="text-red-600">
-                        Delete
-                      </button>
-                    )}
+                    <button
+                      onClick={() => handleDeletePayment(p._id)}
+                      className="text-red-600 hover:underline"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               ))}
