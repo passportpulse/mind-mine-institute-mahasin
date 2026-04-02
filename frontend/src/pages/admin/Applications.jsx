@@ -86,16 +86,13 @@ const Applications = () => {
   };
 
   const openEmiOverlay = (id, emis) => {
-  setStudentEmis((prev) => ({
-    ...prev,
-    [id]: emis && emis.length > 0
-      ? emis
-      : [{ amount: "", dueDate: "" }],
-  }));
+    setStudentEmis((prev) => ({
+      ...prev,
+      [id]: emis && emis.length > 0 ? emis : [{ amount: "", dueDate: "" }],
+    }));
 
-  setEmiInputId(id);
-};
-
+    setEmiInputId(id);
+  };
 
   const confirmEmi = async (id) => {
     try {
@@ -123,22 +120,42 @@ const Applications = () => {
         return "bg-yellow-100 text-yellow-700 border-yellow-200";
     }
   };
-  const addPayment = async (id, paymentData) => {
+  const addPayment = async (id, paymentData, refresh = false) => {
     try {
+      // 🔄 Refresh after delete/update
+      if (!paymentData && refresh) {
+        const res = await fetch(`${API_BASE_URL}/applications/${id}`, {
+          headers: getAdminHeaders(),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          setFeesModalApp(data.data); // ✅ FIXED (was wrong before)
+        }
+        return;
+      }
+
+      // ➕ Add payment
       const res = await fetch(`${API_BASE_URL}/applications/${id}/payment`, {
         method: "POST",
-        headers: getAdminHeaders(),
+        headers: {
+          ...getAdminHeaders(),
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(paymentData),
       });
 
-      const updatedApp = await res.json();
+      const data = await res.json();
 
-      // 🔥 UPDATE MODAL DATA INSTANTLY
-      setFeesModalApp(updatedApp.data);
-
-      fetchApps();
+      if (data.success) {
+        setFeesModalApp(data.data); // ✅ FIXED
+        fetchApps();
+      } else {
+        alert(data.message || "Add payment failed");
+      }
     } catch (err) {
       console.error("Payment Error:", err);
+      alert("Add payment failed");
     }
   };
 
@@ -196,7 +213,21 @@ const Applications = () => {
             <FeesModal
               app={feesModalApp}
               onClose={() => setFeesModalApp(null)}
-              onAddPayment={addPayment}
+              refreshApp={async () => {
+                try {
+                  const res = await fetch(
+                    `${API_BASE_URL}/applications/${feesModalApp._id}`,
+                    { headers: getAdminHeaders() },
+                  );
+                  const data = await res.json();
+                  if (data.success) {
+                    setFeesModalApp(data.application); // update modal instantly
+                  }
+                  fetchApps(); // optional refresh list
+                } catch (err) {
+                  console.error("Refresh failed", err);
+                }
+              }}
             />
           )}
         </div>

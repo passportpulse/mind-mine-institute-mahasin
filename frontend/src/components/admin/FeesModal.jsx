@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { API_BASE_URL, getAdminHeaders } from "../../config/api";
 
-const FeesModal = ({ app, onClose, onAddPayment }) => {
+const FeesModal = ({ app, onClose, refreshApp }) => {
   const totalFees = app.fees || 0;
   const emis = app.emis || [];
   const payments = app.payments || [];
@@ -10,7 +11,7 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
   // ✅ TOTAL PAID
   const paidAmount = payments.reduce(
     (sum, p) => sum + Number(p.amount || 0),
-    0,
+    0
   );
 
   const dueAmount = totalFees - paidAmount;
@@ -22,109 +23,164 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
     return "pending";
   };
 
-  // ✅ STATE (GENERAL PAYMENT)
+  // ================= STATE =================
   const [amount, setAmount] = useState("");
   const [mode, setMode] = useState("cash");
   const [transactionId, setTransactionId] = useState("");
-  const [editIndex, setEditIndex] = useState(null);
+
+  const [editPaymentId, setEditPaymentId] = useState(null);
   const [editAmount, setEditAmount] = useState("");
   const [editTxn, setEditTxn] = useState("");
 
-  // ✅ EMI PAYMENT STATE
   const [selectedEmiIndex, setSelectedEmiIndex] = useState(null);
   const [emiMode, setEmiMode] = useState("cash");
   const [emiTxnId, setEmiTxnId] = useState("");
 
-  // ================= ADD NORMAL PAYMENT =================
-  const handleAddPayment = () => {
-    if (!amount) return;
-
+  // ================= ADD PAYMENT =================
+  const handleAddPayment = async () => {
     const numericAmount = Number(amount);
+    if (!numericAmount || numericAmount <= 0) return alert("Enter a valid amount");
+    if (numericAmount > dueAmount) return alert("Amount exceeds due");
+    if ((mode === "upi" || mode === "bank") && !transactionId) return alert("Transaction ID required");
 
-    if (numericAmount <= 0) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/applications/${app._id}/payment`, {
+        method: "POST",
+        headers: {
+          ...getAdminHeaders(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: numericAmount,
+          type: mode,
+          transactionId: transactionId.trim(),
+          date: new Date(),
+        }),
+      });
 
-    if (numericAmount > dueAmount) {
-      alert("Amount exceeds due");
-      return;
+      const data = await res.json();
+
+      if (data.success) {
+        setAmount("");
+        setTransactionId("");
+        refreshApp(); // ✅ refresh after successful add
+      } else {
+        alert(data.message || "Failed to add payment");
+      }
+    } catch (err) {
+      console.error("Add payment failed", err);
+      alert("Failed to add payment");
     }
-
-    if ((mode === "upi" || mode === "bank") && !transactionId) {
-      alert("Transaction ID required");
-      return;
-    }
-
-    onAddPayment(app._id, {
-      amount: numericAmount,
-      type: mode,
-      transactionId,
-      date: new Date(),
-    });
-
-    setAmount("");
-    setTransactionId("");
   };
 
   // ================= EMI PAYMENT =================
-  const handleEmiPayment = (emi, index) => {
-    if (emi.amount > dueAmount) {
-      alert("Payment exceeds due");
-      return;
+  const handleEmiPayment = async (emi, index) => {
+    const emiAmount = Number(emi.amount);
+    if (!emiAmount || emiAmount > dueAmount) return alert("Payment exceeds due");
+    if ((emiMode === "upi" || emiMode === "bank") && !emiTxnId) return alert("Transaction ID required");
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/applications/${app._id}/payment`, {
+        method: "POST",
+        headers: {
+          ...getAdminHeaders(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: emiAmount,
+          type: "emi",
+          paymentMode: emiMode,
+          transactionId: emiTxnId.trim(),
+          date: new Date(),
+          emiIndex: index,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setSelectedEmiIndex(null);
+        setEmiTxnId("");
+        refreshApp();
+      } else {
+        alert(data.message || "Failed to add EMI payment");
+      }
+    } catch (err) {
+      console.error("EMI payment failed", err);
+      alert("Failed to add EMI payment");
     }
-
-    if ((emiMode === "upi" || emiMode === "bank") && !emiTxnId) {
-      alert("Transaction ID required");
-      return;
-    }
-
-    onAddPayment(app._id, {
-      amount: Number(emi.amount),
-      type: "emi",
-      paymentMode: emiMode,
-      transactionId: emiTxnId,
-      date: new Date(),
-      emiIndex: index,
-    });
-
-    // reset
-    setSelectedEmiIndex(null);
-    setEmiTxnId("");
   };
-  const handleDeletePayment = async (index) => {
+
+  // ================= DELETE PAYMENT =================
+  const handleDeletePayment = async (paymentId) => {
     if (!confirm("Delete this payment?")) return;
 
-    const res = await fetch(`/api/applications/${app._id}/payment/${index}`, {
-      method: "DELETE",
-    });
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/applications/${app._id}/payment/${paymentId}`,
+        {
+          method: "DELETE",
+          headers: getAdminHeaders(),
+        }
+      );
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (data.success) {
-      onAddPayment(app._id, null, true); // 🔥 refresh parent
+      if (data.success) {
+        refreshApp(); // ✅ refresh after delete
+      } else {
+        alert(data.message || "Failed to delete payment");
+      }
+    } catch (err) {
+      console.error("Delete failed", err);
+      alert("Failed to delete payment");
     }
   };
-  const handleUpdatePayment = async (index) => {
-    const res = await fetch(`/api/applications/${app._id}/payment/${index}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        amount: editAmount,
-        transactionId: editTxn,
-      }),
-    });
 
-    const data = await res.json();
+  // ================= UPDATE PAYMENT =================
+  const handleUpdatePayment = async (paymentId) => {
+    const numericAmount = Number(editAmount);
+    if (!numericAmount || numericAmount <= 0) return alert("Enter a valid amount");
 
-    if (data.success) {
-      setEditIndex(null);
-      onAddPayment(app._id, null, true); // 🔥 refresh
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/applications/${app._id}/payment/${paymentId}`,
+        {
+          method: "PUT",
+          headers: {
+            ...getAdminHeaders(),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: numericAmount,
+            transactionId: editTxn.trim(),
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setEditPaymentId(null);
+        refreshApp(); // ✅ refresh after update
+      } else {
+        alert(data.message || "Failed to update payment");
+      }
+    } catch (err) {
+      console.error("Update failed", err);
+      alert("Failed to update payment");
     }
+  };
+
+  const getStatusBadge = (status) => {
+    if (status === "paid") return "bg-green-100 text-green-700";
+    if (status === "overdue") return "bg-red-100 text-red-600";
+    return "bg-yellow-100 text-yellow-700";
   };
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      {/* 🔥 BIGGER MODAL */}
       <div className="bg-white w-[800px] max-h-[90vh] overflow-y-auto rounded-2xl p-6 shadow-xl relative">
-        {/* ❌ CLOSE BUTTON */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-black text-lg"
@@ -134,28 +190,25 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
 
         <h2 className="text-xl font-bold mb-5">Fees Summary</h2>
 
-        {/* ✅ SUMMARY */}
+        {/* SUMMARY */}
         <div className="grid grid-cols-3 gap-4 text-sm mb-6">
           <div>
             <p className="text-gray-500 text-xs">Total Fees</p>
             <p className="font-bold text-lg">₹ {totalFees}</p>
           </div>
-
           <div>
             <p className="text-gray-500 text-xs">Paid</p>
             <p className="font-bold text-green-600 text-lg">₹ {paidAmount}</p>
           </div>
-
           <div>
             <p className="text-gray-500 text-xs">Due</p>
             <p className="font-bold text-red-600 text-lg">₹ {dueAmount}</p>
           </div>
         </div>
 
-        {/* ================= ADD PAYMENT ================= */}
+        {/* ADD PAYMENT FORM */}
         <div className="border rounded-xl p-4 mb-6">
           <p className="text-xs font-bold mb-3">Add Payment</p>
-
           <div className="flex gap-2 items-center flex-wrap">
             <input
               type="number"
@@ -164,7 +217,6 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
               onChange={(e) => setAmount(e.target.value)}
               className="border px-2 py-1 rounded text-sm w-32"
             />
-
             <select
               value={mode}
               onChange={(e) => setMode(e.target.value)}
@@ -174,7 +226,6 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
               <option value="upi">UPI</option>
               <option value="bank">Bank</option>
             </select>
-
             {mode !== "cash" && (
               <input
                 type="text"
@@ -184,7 +235,6 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
                 className="border px-2 py-1 rounded text-sm w-40"
               />
             )}
-
             <button
               onClick={handleAddPayment}
               disabled={dueAmount <= 0}
@@ -195,16 +245,13 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
           </div>
         </div>
 
-        {/* ================= EMI LIST ================= */}
+        {/* EMI SCHEDULE */}
         <div className="space-y-3 mb-6">
           <h4 className="text-xs font-bold text-gray-500">EMI Schedule</h4>
-
           {emis.map((emi, index) => {
             const status = getStatus(emi);
-
             return (
               <div key={index} className="border rounded-xl p-3">
-                {/* ROW */}
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="font-bold">₹ {emi.amount}</p>
@@ -212,21 +259,15 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
                       Due: {emi.dueDate?.split("T")[0] || "N/A"}
                     </p>
                   </div>
-
                   <div className="flex gap-3 items-center">
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        status === "paid"
-                          ? "bg-green-100 text-green-700"
-                          : status === "overdue"
-                            ? "bg-red-100 text-red-600"
-                            : "bg-yellow-100 text-yellow-700"
-                      }`}
+                      className={`text-xs px-2 py-1 rounded-full ${getStatusBadge(
+                        status
+                      )}`}
                     >
                       {status}
                     </span>
-
-                    {status !== "paid" && (
+                    {status !== "paid" && dueAmount > 0 && (
                       <button
                         onClick={() => setSelectedEmiIndex(index)}
                         className="bg-green-600 text-white text-xs px-3 py-1 rounded"
@@ -237,7 +278,6 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
                   </div>
                 </div>
 
-                {/* 🔥 EMI PAYMENT FORM */}
                 {selectedEmiIndex === index && (
                   <div className="mt-3 flex gap-2 flex-wrap items-center bg-gray-50 p-2 rounded">
                     <select
@@ -249,7 +289,6 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
                       <option value="upi">UPI</option>
                       <option value="bank">Bank</option>
                     </select>
-
                     {emiMode !== "cash" && (
                       <input
                         type="text"
@@ -259,14 +298,12 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
                         className="border px-2 py-1 rounded text-xs"
                       />
                     )}
-
                     <button
                       onClick={() => handleEmiPayment(emi, index)}
                       className="bg-indigo-600 text-white px-3 py-1 text-xs rounded"
                     >
                       Confirm
                     </button>
-
                     <button
                       onClick={() => setSelectedEmiIndex(null)}
                       className="text-gray-500 text-xs"
@@ -280,17 +317,12 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
           })}
         </div>
 
-        {/* ================= PAYMENT HISTORY ================= */}
+        {/* PAYMENT HISTORY */}
         <div className="space-y-2 mb-6">
           <h4 className="text-xs font-bold text-gray-500">Payment History</h4>
-
-          {payments.length === 0 && (
-            <p className="text-xs text-gray-400">No payments yet</p>
-          )}
-
+          {payments.length === 0 && <p className="text-xs text-gray-400">No payments yet</p>}
           {payments.length > 0 && (
             <div className="border rounded-xl overflow-hidden text-xs">
-              {/* HEADER */}
               <div className="grid grid-cols-6 bg-gray-100 font-bold px-3 py-2">
                 <span>Amount</span>
                 <span>Mode</span>
@@ -300,14 +332,9 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
                 <span className="text-center">Delete</span>
               </div>
 
-              {/* ROWS */}
-              {payments.map((p, i) => (
-                <div
-                  key={i}
-                  className="grid grid-cols-6 items-center px-3 py-2 border-t"
-                >
-                  {/* AMOUNT */}
-                  {editIndex === i ? (
+              {payments.map((p) => (
+                <div key={p._id} className="grid grid-cols-6 items-center px-3 py-2 border-t">
+                  {editPaymentId === p._id ? (
                     <input
                       type="number"
                       value={editAmount}
@@ -318,11 +345,9 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
                     <span>₹ {p.amount}</span>
                   )}
 
-                  {/* MODE */}
                   <span>{p.paymentMode || p.type}</span>
 
-                  {/* TRANSACTION */}
-                  {editIndex === i ? (
+                  {editPaymentId === p._id ? (
                     <input
                       type="text"
                       value={editTxn}
@@ -330,29 +355,20 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
                       className="border px-1 py-1 text-xs w-24"
                     />
                   ) : (
-                    <span className="truncate text-gray-500">
-                      {p.transactionId || "-"}
-                    </span>
+                    <span className="truncate text-gray-500">{p.transactionId || "-"}</span>
                   )}
 
-                  {/* DATE */}
-                  <span className="text-gray-400">
-                    {new Date(p.date).toLocaleDateString()}
-                  </span>
+                  <span className="text-gray-400">{new Date(p.date).toLocaleDateString()}</span>
 
-                  {/* EDIT BUTTON */}
                   <div className="text-center">
-                    {editIndex === i ? (
-                      <button
-                        onClick={() => handleUpdatePayment(i)}
-                        className="text-green-600 text-xs"
-                      >
+                    {editPaymentId === p._id ? (
+                      <button onClick={() => handleUpdatePayment(p._id)} className="text-green-600 text-xs">
                         Save
                       </button>
                     ) : (
                       <button
                         onClick={() => {
-                          setEditIndex(i);
+                          setEditPaymentId(p._id);
                           setEditAmount(p.amount);
                           setEditTxn(p.transactionId || "");
                         }}
@@ -363,20 +379,13 @@ const FeesModal = ({ app, onClose, onAddPayment }) => {
                     )}
                   </div>
 
-                  {/* DELETE / CANCEL */}
                   <div className="text-center">
-                    {editIndex === i ? (
-                      <button
-                        onClick={() => setEditIndex(null)}
-                        className="text-gray-400 text-xs"
-                      >
+                    {editPaymentId === p._id ? (
+                      <button onClick={() => setEditPaymentId(null)} className="text-gray-400 text-xs">
                         Cancel
                       </button>
                     ) : (
-                      <button
-                        onClick={() => handleDeletePayment(i)}
-                        className="text-red-600"
-                      >
+                      <button onClick={() => handleDeletePayment(p._id)} className="text-red-600">
                         Delete
                       </button>
                     )}
