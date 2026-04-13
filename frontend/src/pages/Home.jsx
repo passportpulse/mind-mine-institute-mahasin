@@ -13,7 +13,7 @@ import PlacementPartnersSection from "../components/homeComponents/placement-par
 const Home = () => {
   return (
     <>
-      <Hero />
+      {/* <Hero /> */}
       <ProgramsSection />
       <BenefitsSection />
       <ProgressStatsSection />
